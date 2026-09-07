@@ -1,0 +1,3 @@
+print("hello world")
+average= ( min+ max)/2;
+nigga pls
