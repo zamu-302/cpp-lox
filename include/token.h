@@ -1,6 +1,7 @@
 #include <cstdint>
 #include <iostream>
 #include <string>
+#include <type_traits>
 #include <variant>
 
 enum class TokenType : uint16_t {
@@ -52,10 +53,11 @@ enum class TokenType : uint16_t {
   Eof,
 
 };
+
 struct identifer {
   std::string val;
 };
-using Literal = std::variant<identifer, std::string, double, nullptr>;
+using Literal = std::variant<identifer, std::string, double>;
 class Token {
 public:
   Token(TokenType type, std::string lexeme, Literal literal, int line)
@@ -142,8 +144,23 @@ public:
       return "Eof";
     }
   }
+  std::string literal_to_string(const Literal &l) {
+    return std::visit(
+        [](const auto &v) -> std::string {
+          using T = std::decay_t<decltype(v)>;
+          if constexpr (std::is_same_v<std::string, T>) {
+            return v;
+          } else if constexpr (std::is_same_v<identifer, T>) {
+            return v.val;
+          } else {
+            return std::to_string(v);
+          }
+        },
+        l);
+  }
   std::string toString() {
-    return Token_to_string(type) + " " + lexeme + " " + literal;
+    return Token_to_string(type) + " " + lexeme + " " +
+           literal_to_string(literal);
   }
 
 private:

@@ -1,46 +1,38 @@
-#include <cstdint>
-#include <cstdlib>
-#include <fstream>
-#include <iostream>
-#include <sstream>
-#include <string>
+#include "../include/main.h"
 
-class Lox {
-public:
-  void trials() { runPrompt(); }
-  void error(int line, const std::string &message) {
-    report(line, "", message);
-  }
+void Lox::trials() { runPrompt(); }
 
-private:
-  bool hadError = false;
-  void runPrompt() {
-    std::string input;
-    std::cin >> input;
+void Lox::error(int line, const std::string &message) {
+  report(line, "", message);
+}
 
-    std::fstream file(input);
-    std::string line;
+void Lox::runPrompt() {
+  std::string input;
+  std::cin >> input;
 
-    while (std::getline(file, line)) {
-      std::cout << "> ";
-      run(line);
-      hadError = false;
-    }
+  std::fstream file(input);
+  std::string line;
+
+  while (std::getline(file, line)) {
+    std::cout << "> ";
+    run(line);
+    hadError = false;
   }
-  void run(std::string &line) {
-    std::istringstream ss(line);
-    for (std::string token; ss >> token;) {
-      std::cout << token << '\n';
-    }
-    if (hadError) {
-      std::exit(65);
-    }
+}
+void Lox::run(std::string &line) {
+  std::istringstream ss(line);
+  for (std::string token; ss >> token;) {
+    std::cout << token << '\n';
   }
-  void report(int line, const std::string &where, const std::string &message) {
-    std::cerr << "[line " << line << " ] Error " << where << ": " << message;
-    hadError = true;
+  if (hadError) {
+    std::exit(65);
   }
-};
+}
+void Lox::report(int line, const std::string &where,
+                 const std::string &message) {
+  std::cerr << "[line " << line << " ] Error " << where << ": " << message;
+  hadError = true;
+}
 
 int main() {
 

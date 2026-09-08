@@ -1,21 +1,17 @@
+#include "main.h"
 #include "token.h"
 #include <cstddef>
 #include <iostream>
 #include <string>
+#include <variant>
 #include <vector>
 class Scanner {
 public:
   Scanner(std::string source) : source{source} {}
-  auto scanTokens() {
-    while (!isAtEnd()) {
-      start = curr;
-      scanToken();
-    }
-    tokens.emplace_back(Token(TokenType::Eof, "", nullptr, line));
-    return tokens;
-  }
+  auto scanTokens();
 
 private:
+  Lox lox;
   bool isAtEnd();
   void scanToken();
   std::string source;
@@ -28,4 +24,5 @@ private:
   char advance();
   void addToken(TokenType type);
   void addToken(TokenType type, Literal &literal);
+  bool match(char c);
 };
