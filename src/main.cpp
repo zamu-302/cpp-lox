@@ -2,7 +2,8 @@
 
 void Lox::trials() { runPrompt(); }
 
-void Lox::error(int line, const std::string &message) {
+void  Lox::error(int line, const std::string &message) {
+   
   report(line, "", message);
 }
 
@@ -34,10 +35,3 @@ void Lox::report(int line, const std::string &where,
   hadError = true;
 }
 
-int main() {
-
-  Lox l1;
-  l1.trials();
-
-  return 0;
-}

@@ -34,7 +34,7 @@ private:
   // helpers
   char advance();
   void addToken(TokenType type);
-  void addToken(TokenType type, Literal &literal);
+  void addToken(TokenType type, const Literal &literal);
   void is_string();
   char peek();
   bool match(char c);

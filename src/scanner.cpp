@@ -114,7 +114,7 @@ char Scanner::advance() {
   curr++;
   return source[curr - 1];
 }
-void Scanner::addToken(TokenType type, Literal &l) {
+void Scanner::addToken(TokenType type, const Literal &l) {
   std::string text = source.substr(start, curr);
   tokens.emplace_back(Token(type, text, l, line));
 }
@@ -181,3 +181,5 @@ void Scanner::identifier() {
   }
   addToken(type);
 }
+
+int main() { return 0; }
