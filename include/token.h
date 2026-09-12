@@ -163,6 +163,7 @@ public:
     return Token_to_string(type) + " " + lexeme + " " +
            literal_to_string(literal);
   }
+  std::string getLexeme() const { return lexeme; }
 
 private:
   TokenType type;
