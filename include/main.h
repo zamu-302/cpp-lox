@@ -6,6 +6,9 @@
 
 class Lox {
 public:
+  Lox(){
+    
+  }
   void trials();
   void error(int line, const std::string &message);
 
