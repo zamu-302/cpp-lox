@@ -2,10 +2,6 @@
 
 void Lox::trials() { runPrompt(); }
 
-void Lox::error(int line, const std::string &message) {
-
-  report(line, "", message);
-}
 
 void Lox::runPrompt() {
   std::string input;
@@ -29,8 +25,4 @@ void Lox::run(std::string &line) {
     std::exit(65);
   }
 }
-void Lox::report(int line, const std::string &where,
-                 const std::string &message) {
-  std::cerr << "[line " << line << " ] Error " << where << ": " << message;
-  hadError = true;
-}
+

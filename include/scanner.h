@@ -1,4 +1,4 @@
-#include "main.h"
+#include "error_reporter.h"
 #include "token.h"
 #include <cstddef>
 #include <iostream>
@@ -8,11 +8,12 @@
 #include <vector>
 class Scanner {
 public:
-  Scanner(std::string source) : source{source} {}
+  Scanner(std::string source, ErrorReporter &reporter)
+      : source{source}, reporter{reporter} {}
   auto scanTokens();
 
 private:
-  Lox lox;
+  ErrorReporter reporter;
   bool isAtEnd();
   void scanToken();
   std::string source;

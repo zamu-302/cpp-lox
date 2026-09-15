@@ -1,3 +1,6 @@
+#include "error_reporter.h"
+#include "parser.h"
+#include "scanner.h"
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
@@ -6,13 +9,12 @@
 
 class Lox {
 public:
+  ErrorReporter report;
   Lox() {}
   void trials();
-  void error(int line, const std::string &message);
 
 private:
   bool hadError = false;
   void runPrompt();
   void run(std::string &line);
-  void report(int line, const std::string &where, const std::string &message);
 };

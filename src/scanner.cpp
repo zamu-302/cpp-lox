@@ -76,7 +76,7 @@ void Scanner::scanToken() {
       }
 
       if (isAtEnd()) {
-        lox.error(line, "Undefined Comment Scope");
+        reporter.error(line, "Undefined Comment Scope");
       }
 
     }
@@ -103,7 +103,7 @@ void Scanner::scanToken() {
     } else if (std::isalpha(c) || c == '_') {
       identifer();
     } else {
-      lox.error(line, "unexpected character");
+      reporter.error(line, "unexpected character");
     }
     break;
   }
@@ -143,7 +143,7 @@ void Scanner::is_string() {
     advance();
   }
   if (isAtEnd()) {
-    lox.error(line, "Unterminated String.");
+    reporter.error(line, "Unterminated String.");
     return;
   }
   advance();

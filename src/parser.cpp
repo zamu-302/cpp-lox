@@ -35,7 +35,7 @@ std::unique_ptr<Expr> Parser::unary() {
   if (match({TokenType::BANG, TokenType::MINUS})) {
     Token opr = previous();
     std::unique_ptr<Expr> right = unary();
-    return std::make_unique<Unaryr>(opr, std::move(right));
+    return std::make_unique<Unary>(opr, std::move(right));
   }
   return primary();
 }
@@ -54,6 +54,7 @@ std::unique_ptr<Expr> Parser::primary() {
     consume(TokenType::RIGHT_PAREN, "Expected ')' after expression.");
     return std::make_unique<Grouping>(std::move(expr));
   }
+  throw error(peek(), "Expect expression");
 }
 
 std::unique_ptr<Expr> Parser::equality() {
@@ -84,5 +85,37 @@ bool Parser::check(TokenType type) {
 
 bool Parser::isAtEnd() { return peek().getType() == TokenType::Eof; }
 Token Parser::peek() const { return _tokens[curr]; }
-
+Token Parser::consume(TokenType type, const std::string &message) {
+  if (check(type))
+    return advance();
+  throw error(peek(), message);
+}
 Token Parser::previous() const { return _tokens[curr - 1]; }
+
+ParseError Parser::error(Token token, const std::string &message) {
+  reporter.error(token, message);
+  ParseError parse_error(message);
+  return parse_error;
+}
+
+void Parser::synchronize() {
+  advance();
+  while (!isAtEnd()) {
+    if (previous().getType() == TokenType::SEMICOLON) {
+      return;
+    }
+
+    switch (peek().getType()) {
+    case TokenType::CLASS:
+    case TokenType::FUN:
+    case TokenType::VAR:
+    case TokenType::FOR:
+    case TokenType::IF:
+    case TokenType::WHILE:
+    case TokenType::PRINT:
+    case TokenType::RETURN:
+      return;
+    }
+    advance();
+  }
+}
