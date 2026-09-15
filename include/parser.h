@@ -15,10 +15,16 @@ private:
   std::unique_ptr<Expr> equality();
   std::unique_ptr<Expr> comparsion();
   std::unique_ptr<Expr> term();
+  std::unique_ptr<Expr> factor();
+  std::unique_ptr<Expr> unary();
+  std::unique_ptr<Expr> primary();
+
   bool match(std::initializer_list<TokenType> types);
   bool isAtEnd();
   bool check(TokenType type);
+
   Token advance();
   Token peek() const;
   Token previous() const;
+  Token consume(TokenType type, const std::string &message);
 };
