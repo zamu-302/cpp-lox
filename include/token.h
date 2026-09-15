@@ -145,6 +145,7 @@ public:
       return "Eof";
     }
   }
+  TokenType getType() const { return type; }
   std::string literal_to_string(const Literal &l) {
     return std::visit(
         [](const auto &v) -> std::string {

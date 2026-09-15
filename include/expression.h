@@ -26,6 +26,7 @@ class Binary : public Expr {
 public:
   Binary(std::unique_ptr<Expr> left, std::unique_ptr<Expr> right, Token opr)
       : left{std::move(left)}, right{std::move(right)}, opr{opr} {}
+
   void accept(Visitor &visitor) override { visitor.visitBinary(*this); }
 
   std::unique_ptr<Expr> left;
@@ -80,7 +81,13 @@ public:
     expr.right->accept(*this);
     result = "(" + expr.opr.getLexeme() + " " + result + ")";
   }
-  void visitLiteral(const Literals &expr) override { result = expr.value; }
+  void visitLiteral(const Literals &expr) override {
+    if (expr.value.empty()) {
+      result = "nil";
+    } else {
+      result = expr.value;
+    }
+  }
   void visitGrouping(const Grouping &expr) override {
     expr.expression->accept(*this);
     result = "(group " + result + ")";
