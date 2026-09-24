@@ -5,6 +5,7 @@
 
 class ErrorReporter {
 public:
+  void error(int, const std::string &message);
   void error(Token token, const std::string &message);
 
 private:

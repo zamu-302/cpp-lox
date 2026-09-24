@@ -2,7 +2,6 @@
 
 void Lox::trials() { runPrompt(); }
 
-
 void Lox::runPrompt() {
   std::string input;
   std::cin >> input;
@@ -25,4 +24,3 @@ void Lox::run(std::string &line) {
     std::exit(65);
   }
 }
-

@@ -1,5 +1,9 @@
 #include "../include/error_reporter.h"
 
+void ErrorReporter::error(int line, const std::string &message) {
+  report(line, "", message);
+}
+
 void ErrorReporter::error(Token token, const std::string &message) {
   if (token.getType() == TokenType::Eof) {
     report(token.getLine(), " at end", message);

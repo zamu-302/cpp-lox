@@ -6,6 +6,11 @@
 #include <stdexcept>
 #include <string>
 #include <vector>
+
+struct ParseError : public std::runtime_error {
+  ParseError(const std::string &msg) : std::runtime_error(msg) {}
+};
+
 class Parser {
 public:
   Parser(const std::vector<Token> &tokens, const ErrorReporter &reporter)
@@ -13,9 +18,6 @@ public:
 
 private:
   ErrorReporter reporter;
-  struct ParseError : public std::runtime_error {
-    ParseError(const std::string &msg) : std::runtime_error(msg) {}
-  };
   std::vector<Token> _tokens;
   int curr = 0;
   // grammar
