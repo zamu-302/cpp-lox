@@ -1,5 +1,6 @@
 #include "../include/main.h"
 
+
 void Lox::trials() { runPrompt(); }
 
 void Lox::runPrompt() {
@@ -24,3 +25,4 @@ void Lox::run(std::string &line) {
     std::exit(65);
   }
 }
+
