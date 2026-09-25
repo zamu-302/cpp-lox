@@ -1,3 +1,4 @@
+#include "error_reporter.h"
 #include "expression.h"
 #include "token.h"
 #include <any>
@@ -5,6 +6,7 @@
 #include <string>
 class Interpreter : public Visitor {
 public:
+  Interpreter(const RuntimeError &error) : error{error} {}
   std::any visitLiteral(const Literals &expr) override { return expr.value; }
   std::any visitGrouping(const Grouping &expr) override {
     return evaluate(expr.expression);
@@ -61,9 +63,11 @@ public:
   }
 
 private:
+  RuntimeError error;
   std::any evaluate(const std::unique_ptr<Expr> &expr) {
     return expr->accept(*this);
   }
   bool isTruly(std::any expr);
   bool isEqual(std::any left, std::any right);
+  void checkNumberOperator(Token token, std::any operand);
 };

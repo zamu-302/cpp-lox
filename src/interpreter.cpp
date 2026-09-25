@@ -33,3 +33,9 @@ bool Interpreter::isEqual(std::any left, std::any right) {
 
   return false;
 }
+void Interpreter::checkNumberOperator(Token token, std::any operand) {
+  if (operand.type() == typeid(double)) {
+    return;
+  }
+  throw RuntimeError(token, "operator  must be an number.");
+}
