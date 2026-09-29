@@ -2,7 +2,7 @@
 #include <cctype>
 #include <string>
 
-auto Scanner::scanTokens() {
+std::vector<Token> Scanner::scanTokens() {
   while (!isAtEnd()) {
     start = curr;
     scanToken();
@@ -181,5 +181,3 @@ void Scanner::identifier() {
   }
   addToken(type);
 }
-
-int main() { return 0; }

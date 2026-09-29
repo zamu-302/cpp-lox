@@ -1,13 +1,14 @@
 #include "../include/interpreter.h"
 #include <any>
-#include <iostream>
+#include <memory>
 #include <string>
-void Interpreter::interpret(std::unique_ptr<Expr> expression) {
+void Interpreter::interpret(std::vector<std::unique_ptr<Stmt>> statements) {
   try {
-    std::any val = evaluate(expression);
-    std::cout << stringify(val) << '\n';
+    for (const auto &statement : statements) {
+      execute(statement);
+    }
   } catch (RuntimeError error) {
-    reporter.runtime_error(error);
+    throw RuntimeError::runtime_error(error);
   }
 }
 bool Interpreter::isTruly(std::any obj) {
@@ -64,4 +65,7 @@ std::string Interpreter::stringify(std::any obj) {
     return text;
   }
   return std::any_cast<std::string>(obj);
+}
+void Interpreter::execute(const std::unique_ptr<Stmt> &stmt) {
+  stmt->accept(*this);
 }

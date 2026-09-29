@@ -1,3 +1,4 @@
-print("hello world")
-average= ( min+ max)/2;
-nigga pls
+print "one";
+print true;
+print 2 + 1;
+

@@ -115,6 +115,8 @@ void Parser::synchronize() {
     case TokenType::PRINT:
     case TokenType::RETURN:
       return;
+    default:
+      break;
     }
     advance();
   }
@@ -141,4 +143,10 @@ std::unique_ptr<Stmt> Parser::expressionStatement() {
   std::unique_ptr<Expr> expr = expression();
   consume(TokenType::SEMICOLON, "Expeceted ';' after value");
   return std::make_unique<ExprStmt>(std::move(expr));
+}
+Token Parser::advance() {
+  if (!isAtEnd()) {
+    curr++;
+  }
+  return previous();
 }

@@ -5,11 +5,11 @@
 #include <any>
 #include <memory>
 #include <string>
+#include <vector>
 class Interpreter : public Visitor, public StmtVisitor {
 public:
-  Interpreter(const RuntimeError &error, const ErrorReporter &reporter)
-      : error{error}, reporter{reporter} {}
-  void interpret(std::unique_ptr<Expr> expression);
+  Interpreter(const ErrorReporter &reporter) : reporter{reporter} {}
+  void interpret(std::vector<std::unique_ptr<Stmt>> statements);
   std::any visitLiteral(const Literals &expr) override { return expr.value; }
   std::any visitGrouping(const Grouping &expr) override {
     return evaluate(expr.expression);
@@ -81,7 +81,6 @@ public:
   }
 
 private:
-  RuntimeError error;
   ErrorReporter reporter;
   std::any evaluate(const std::unique_ptr<Expr> &expr) {
     return expr->accept(*this);
@@ -91,4 +90,5 @@ private:
   void checkNumberOperands(Token token, std::any left, std::any right);
   void checkNumberOperands(Token token, std::any operand);
   std::string stringify(std::any obj);
+  void execute(const std::unique_ptr<Stmt> &stmt);
 };

@@ -10,7 +10,7 @@ class Scanner {
 public:
   Scanner(std::string source, ErrorReporter &reporter)
       : source{source}, reporter{reporter} {}
-  auto scanTokens();
+  std::vector<Token> scanTokens();
 
 private:
   ErrorReporter reporter;

@@ -2,6 +2,7 @@
 #include "interpreter.h"
 #include "parser.h"
 #include "scanner.h"
+#include "stmt.h"
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
@@ -9,11 +10,10 @@
 #include <string>
 class Lox {
 public:
+  Lox() {}
+  friend Scanner;
   void trials();
   ErrorReporter reporter;
-
-private:
-  static Interpreter interpreter;
   void runPrompt();
   void run(std::string &line);
 };

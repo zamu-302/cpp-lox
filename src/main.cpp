@@ -1,4 +1,6 @@
 #include "../include/main.h"
+#include <memory>
+#include <vector>
 
 void Lox::trials() { runPrompt(); }
 
@@ -17,16 +19,26 @@ void Lox::runPrompt() {
 }
 
 void Lox::run(std::string &line) {
-  std::istringstream ss(line);
-  for (std::string token; ss >> token;) {
-    std::cout << token << '\n';
-  }
+  Scanner scan(line, reporter);
+  std::vector<Token> tokens = scan.scanTokens();
+
+  Parser parser(tokens, reporter);
+  std::vector<std::unique_ptr<Stmt>> statments = parser.parse();
+
   if (ErrorReporter::hadError) {
     std::exit(65);
   }
-  Lox::interpreter::interpret(expression);
+  Interpreter interpreter(reporter);
+  interpreter.interpret(std::move(statments));
 
   if (ErrorReporter::hadRuntimeError) {
     std::exit(70);
   }
+}
+
+int main() {
+  Lox lox;
+  std::string tri = "print 1 + 2;";
+  lox.run(tri);
+  return 0;
 }
