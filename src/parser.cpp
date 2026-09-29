@@ -119,3 +119,26 @@ void Parser::synchronize() {
     advance();
   }
 }
+std::vector<std::unique_ptr<Stmt>> Parser::parse() {
+  std::vector<std::unique_ptr<Stmt>> statements;
+  while (!isAtEnd()) {
+    statements.emplace_back(statement());
+  }
+  return statements;
+}
+std::unique_ptr<Stmt> Parser::statement() {
+  if (match({TokenType::PRINT})) {
+    return printStatement();
+  }
+  return expressionStatement();
+}
+std::unique_ptr<Stmt> Parser::printStatement() {
+  std::unique_ptr<Expr> value = expression();
+  consume(TokenType::SEMICOLON, "Expected ';' after value");
+  return std::make_unique<PrintStmt>(std::move(value));
+}
+std::unique_ptr<Stmt> Parser::expressionStatement() {
+  std::unique_ptr<Expr> expr = expression();
+  consume(TokenType::SEMICOLON, "Expeceted ';' after value");
+  return std::make_unique<ExprStmt>(std::move(expr));
+}

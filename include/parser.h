@@ -1,5 +1,6 @@
 #include "error_reporter.h"
 #include "expression.h"
+#include "stmt.h"
 #include "token.h"
 #include <initializer_list>
 #include <memory>
@@ -15,6 +16,8 @@ class Parser {
 public:
   Parser(const std::vector<Token> &tokens, const ErrorReporter &reporter)
       : _tokens{tokens}, reporter{reporter} {}
+  friend Stmt;
+  std::vector<std::unique_ptr<Stmt>> parse();
 
 private:
   ErrorReporter reporter;
@@ -39,6 +42,8 @@ private:
   Token consume(TokenType type, const std::string &message);
 
   void synchronize();
-
+  std::unique_ptr<Stmt> statement();
+  std::unique_ptr<Stmt> printStatement();
+  std::unique_ptr<Stmt> expressionStatement();
   ParseError error(Token token, const std::string &str);
 };

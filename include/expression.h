@@ -1,3 +1,4 @@
+#pragma once
 #include "token.h"
 #include <any>
 #include <memory>
@@ -28,7 +29,9 @@ public:
   Binary(std::unique_ptr<Expr> left, std::unique_ptr<Expr> right, Token opr)
       : left{std::move(left)}, right{std::move(right)}, opr{opr} {}
 
-  std::any accept(Visitor &visitor) override { visitor.visitBinary(*this); }
+  std::any accept(Visitor &visitor) override {
+    return visitor.visitBinary(*this);
+  }
 
   std::unique_ptr<Expr> left;
   std::unique_ptr<Expr> right;
@@ -39,7 +42,9 @@ class Unary : public Expr {
 public:
   Unary(Token opr, std::unique_ptr<Expr> right)
       : opr{opr}, right{std::move(right)} {}
-  std::any accept(Visitor &visitor) override { visitor.visitUnary(*this); }
+  std::any accept(Visitor &visitor) override {
+    return visitor.visitUnary(*this);
+  }
   Token opr;
   std::unique_ptr<Expr> right;
 };
@@ -49,7 +54,9 @@ public:
 
   Literals(std::string value) : value(value) {}
 
-  std::any accept(Visitor &visitor) override { visitor.visitLiteral(*this); }
+  std::any accept(Visitor &visitor) override {
+    return visitor.visitLiteral(*this);
+  }
 };
 
 class Grouping : public Expr {
@@ -59,7 +66,9 @@ public:
   Grouping(std::unique_ptr<Expr> expression)
       : expression(std::move(expression)) {}
 
-  std::any accept(Visitor &visitor) override { visitor.visitGrouping(*this); }
+  std::any accept(Visitor &visitor) override {
+    return visitor.visitGrouping(*this);
+  }
 };
 
 class AstPrinter : public Visitor {
@@ -76,11 +85,13 @@ public:
 
     result =
         "(" + expr.opr.getLexeme() + " " + left_str + " " + right_str + ")";
+    return result;
   }
 
   std::any visitUnary(const Unary &expr) override {
     expr.right->accept(*this);
     result = "(" + expr.opr.getLexeme() + " " + result + ")";
+    return result;
   }
   std::any visitLiteral(const Literals &expr) override {
     if (expr.value.empty()) {
@@ -88,10 +99,12 @@ public:
     } else {
       result = expr.value;
     }
+    return result;
   }
   std::any visitGrouping(const Grouping &expr) override {
     expr.expression->accept(*this);
     result = "(group " + result + ")";
+    return result;
   }
 
   std::string print(Expr &expr) {

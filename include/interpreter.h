@@ -1,10 +1,11 @@
 #include "error_reporter.h"
 #include "expression.h"
+#include "stmt.h"
 #include "token.h"
 #include <any>
 #include <memory>
 #include <string>
-class Interpreter : public Visitor {
+class Interpreter : public Visitor, public StmtVisitor {
 public:
   Interpreter(const RuntimeError &error, const ErrorReporter &reporter)
       : error{error}, reporter{reporter} {}
@@ -13,6 +14,12 @@ public:
   std::any visitGrouping(const Grouping &expr) override {
     return evaluate(expr.expression);
   }
+  void visitExprStmt(const ExprStmt &stmt) override { evaluate(stmt.expr); }
+  void visitPrintStmt(const PrintStmt &stmt) override {
+    std::any value = evaluate(stmt.expr);
+    std::cout << stringify(value) << '\n';
+  }
+
   std::any visitUnary(const Unary &expr) override {
     std::any right = evaluate(expr.right);
     switch (expr.opr.getType()) {
