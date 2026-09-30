@@ -1,3 +1,4 @@
+#include "environment.h"
 #include "error_reporter.h"
 #include "expression.h"
 #include "stmt.h"
@@ -24,6 +25,10 @@ public:
     if (stmt.initalizer != nullptr) {
       val = evaluate(stmt.initalizer);
     }
+    environment.define(stmt.name.getLexeme(), val);
+  }
+  std::any visitVariable(const Variable &variable) override {
+    return environment.get(variable.name);
   }
 
   std::any visitUnary(const Unary &expr) override {
@@ -92,6 +97,7 @@ public:
 
 private:
   ErrorReporter reporter;
+  Environment environment;
   std::any evaluate(const std::unique_ptr<Expr> &expr) {
     return expr->accept(*this);
   }
