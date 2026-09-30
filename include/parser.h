@@ -32,6 +32,7 @@ private:
   std::unique_ptr<Expr> unary();
   std::unique_ptr<Expr> primary();
 
+  // helper
   bool match(std::initializer_list<TokenType> types);
   bool isAtEnd();
   bool check(TokenType type);
@@ -43,7 +44,9 @@ private:
 
   void synchronize();
   std::unique_ptr<Stmt> statement();
+  std::unique_ptr<Stmt> declaration();
   std::unique_ptr<Stmt> printStatement();
   std::unique_ptr<Stmt> expressionStatement();
+  std::unique_ptr<Stmt> varDeclaration();
   ParseError error(Token token, const std::string &str);
 };

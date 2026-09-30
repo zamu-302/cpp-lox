@@ -49,6 +49,9 @@ std::unique_ptr<Expr> Parser::primary() {
   if (match({TokenType::NUMBER, TokenType::STRING})) {
     return std::make_unique<Literals>(previous().getLiteral());
   }
+  if (match({TokenType::IDENTFIERS})) {
+    return std::make_unique<Variable>(previous());
+  }
   if (match({TokenType::LEFT_PAREN})) {
     std::unique_ptr<Expr> expr = expression();
     consume(TokenType::RIGHT_PAREN, "Expected ')' after expression.");
@@ -124,7 +127,7 @@ void Parser::synchronize() {
 std::vector<std::unique_ptr<Stmt>> Parser::parse() {
   std::vector<std::unique_ptr<Stmt>> statements;
   while (!isAtEnd()) {
-    statements.emplace_back(statement());
+    statements.emplace_back(declaration());
   }
   return statements;
 }
@@ -149,4 +152,24 @@ Token Parser::advance() {
     curr++;
   }
   return previous();
+}
+std::unique_ptr<Stmt> Parser::declaration() {
+  try {
+    if (match({TokenType::VAR})) {
+      return varDeclaration();
+    }
+    return statement();
+  } catch (ParseError error) {
+    synchronize();
+    return nullptr;
+  }
+}
+std::unique_ptr<Stmt> Parser::varDeclaration() {
+  Token name = consume(TokenType::IDENTFIERS, "expected variable name.");
+  std::unique_ptr<Expr> initalizer = nullptr;
+  if (match({TokenType::EQUAL})) {
+    initalizer = expression();
+  }
+  consume(TokenType::SEMICOLON, "Expected ';' after variable declaration.");
+  return std::make_unique<VarStmt>(name, std::move(initalizer));
 }

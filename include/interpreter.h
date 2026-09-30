@@ -19,6 +19,12 @@ public:
     std::any value = evaluate(stmt.expr);
     std::cout << stringify(value) << '\n';
   }
+  void visitVarStmt(const VarStmt &stmt) override {
+    std::any val = nullptr;
+    if (stmt.initalizer != nullptr) {
+      val = evaluate(stmt.initalizer);
+    }
+  }
 
   std::any visitUnary(const Unary &expr) override {
     std::any right = evaluate(expr.right);
@@ -28,6 +34,8 @@ public:
       return -1 * std::any_cast<double>(right);
     case TokenType::BANG:
       return !isTruly(right);
+    default:
+      break;
     }
     return NULL;
   }
@@ -76,6 +84,8 @@ public:
       return !isEqual(left, right);
     case TokenType::EQUAL_EQUAL:
       return isEqual(left, right);
+    default:
+      break;
     }
     return NULL;
   }

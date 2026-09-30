@@ -8,6 +8,7 @@ class Binary;
 class Unary;
 class Literals;
 class Grouping;
+class Variable;
 
 class Visitor {
 public:
@@ -15,6 +16,7 @@ public:
   virtual std::any visitUnary(const Unary &unary) = 0;
   virtual std::any visitLiteral(const Literals &literal) = 0;
   virtual std::any visitGrouping(const Grouping &grouping) = 0;
+  virtual std::any visitVariable(const Variable &variable) = 0;
   virtual ~Visitor() = default;
 };
 
@@ -110,5 +112,13 @@ public:
   std::string print(Expr &expr) {
     expr.accept(*this);
     return result;
+  }
+};
+class Variable : public Expr {
+public:
+  Token name;
+  Variable(const Token &name) : name{name} {}
+  std::any accept(Visitor &visitor) override {
+    return visitor.visitVariable(*this);
   }
 };
