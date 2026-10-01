@@ -50,4 +50,5 @@ private:
   std::unique_ptr<Stmt> expressionStatement();
   std::unique_ptr<Stmt> varDeclaration();
   ParseError error(Token token, const std::string &str);
+  std::vector<std::unique_ptr<Stmt>> block();
 };

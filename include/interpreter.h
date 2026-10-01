@@ -36,6 +36,9 @@ public:
   std::any visitVariable(const Variable &variable) override {
     return environment.get(variable.name);
   }
+  void visitBlockStmt(const Block &stmt) override {
+    executeBlock(stmt.state, new Environment(environment));
+  }
 
   std::any visitUnary(const Unary &expr) override {
     std::any right = evaluate(expr.right);
@@ -106,6 +109,16 @@ private:
   Environment environment;
   std::any evaluate(const std::unique_ptr<Expr> &expr) {
     return expr->accept(*this);
+  }
+  void executeBlock(const std::vector<std::unique_ptr<Stmt>> &statement,
+                    Environment *env) {
+    Environment prev = this->environment;
+
+    this->environment = env;
+    for (const auto &s : statement) {
+      execute(s);
+    }
+    this->environment = prev;
   }
   bool isTruly(std::any expr);
   bool isEqual(std::any left, std::any right);
