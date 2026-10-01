@@ -25,6 +25,7 @@ private:
   int curr = 0;
   // grammar
   std::unique_ptr<Expr> expression();
+  std::unique_ptr<Expr> assignment();
   std::unique_ptr<Expr> equality();
   std::unique_ptr<Expr> comparsion();
   std::unique_ptr<Expr> term();

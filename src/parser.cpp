@@ -1,7 +1,7 @@
 #include "../include/parser.h"
 #include <memory>
 
-std::unique_ptr<Expr> Parser::expression() { return equality(); }
+std::unique_ptr<Expr> Parser::expression() { return assignment(); }
 
 std::unique_ptr<Expr> Parser::comparsion() {
   std::unique_ptr<Expr> expr = term();
@@ -59,7 +59,19 @@ std::unique_ptr<Expr> Parser::primary() {
   }
   throw error(peek(), "Expect expression");
 }
-
+std::unique_ptr<Expr> Parser::assignment() {
+  std::unique_ptr<Expr> expr = equality();
+  if (match({TokenType::EQUAL})) {
+    Token equals = previous();
+    std::unique_ptr<Expr> value = assignment();
+    if (auto *var = dynamic_cast<Variable *>(expr.get())) {
+      Token name = var->name;
+      return std::make_unique<Assign>(name, std::move(value));
+    }
+    reporter.error(equals, "Invalid assignment target.");
+  }
+  return expr;
+}
 std::unique_ptr<Expr> Parser::equality() {
   std::unique_ptr<Expr> expr = comparsion();
   while (match({TokenType::BANG_EQUAL, TokenType::EQUAL_EQUAL})) {

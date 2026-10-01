@@ -9,6 +9,7 @@ class Unary;
 class Literals;
 class Grouping;
 class Variable;
+class Assign;
 
 class Visitor {
 public:
@@ -17,6 +18,7 @@ public:
   virtual std::any visitLiteral(const Literals &literal) = 0;
   virtual std::any visitGrouping(const Grouping &grouping) = 0;
   virtual std::any visitVariable(const Variable &variable) = 0;
+  virtual std::any visitAssign(const Assign &assign) = 0;
   virtual ~Visitor() = default;
 };
 
@@ -121,4 +123,13 @@ public:
   std::any accept(Visitor &visitor) override {
     return visitor.visitVariable(*this);
   }
+};
+class Assign : public Expr {
+public:
+  Token name;
+  std::unique_ptr<Expr> value;
+  Assign(const Token &name, std::unique_ptr<Expr> value)
+      : name{name}, value{std::move(value)} {}
+
+  std::any accept(Visitor &visit) override { return visit.visitAssign(*this); }
 };
