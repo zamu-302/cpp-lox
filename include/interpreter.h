@@ -4,6 +4,7 @@
 #include "stmt.h"
 #include "token.h"
 #include <any>
+#include <charconv>
 #include <memory>
 #include <string>
 #include <vector>
@@ -26,6 +27,11 @@ public:
       val = evaluate(stmt.initalizer);
     }
     environment.define(stmt.name.getLexeme(), val);
+  }
+  std::any visitAssign(const Assign &expr) override {
+    std::any value = evaluate(expr.value);
+    environment.assign(expr.name, value);
+    return value;
   }
   std::any visitVariable(const Variable &variable) override {
     return environment.get(variable.name);
