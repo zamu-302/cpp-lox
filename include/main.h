@@ -15,5 +15,5 @@ public:
   void trials();
   ErrorReporter reporter;
   void runPrompt();
-  void run(std::string &line);
+  void run(const std::string &line);
 };

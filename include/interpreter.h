@@ -69,6 +69,7 @@ public:
 
       if ((typeid(std::string) == left.type()) &&
           (typeid(std::string) == right.type())) {
+        std::cout << "it's a string" << std::endl;
         return std::any_cast<std::string>(left) +
                std::any_cast<std::string>(right);
       }

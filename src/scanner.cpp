@@ -9,40 +9,41 @@ std::vector<Token> Scanner::scanTokens() {
   }
 
   tokens.emplace_back(Token(TokenType::Eof, "", std::string{}, line));
+  line++;
   return tokens;
 }
 void Scanner::scanToken() {
   char c = advance();
   switch (c) {
   case '(':
-    addToken(TokenType::LEFT_BRACE);
+    addToken(TokenType::LEFT_PAREN);
     break;
   case ')':
-    addToken(TokenType::LEFT_BRACE);
+    addToken(TokenType::RIGHT_PAREN);
     break;
   case '{':
     addToken(TokenType::LEFT_BRACE);
     break;
   case '}':
-    addToken(TokenType::LEFT_BRACE);
+    addToken(TokenType::RIGHT_BRACE);
     break;
   case ',':
-    addToken(TokenType::LEFT_BRACE);
+    addToken(TokenType::COMMA);
     break;
   case '.':
-    addToken(TokenType::LEFT_BRACE);
+    addToken(TokenType::DOT);
     break;
   case '-':
-    addToken(TokenType::LEFT_BRACE);
+    addToken(TokenType::MINUS);
     break;
   case '+':
-    addToken(TokenType::LEFT_BRACE);
+    addToken(TokenType::PLUS);
     break;
   case ';':
-    addToken(TokenType::LEFT_BRACE);
+    addToken(TokenType::SEMICOLON);
     break;
   case '*':
-    addToken(TokenType::LEFT_BRACE);
+    addToken(TokenType::STAR);
     break;
   case '!':
     addToken(match('=') ? TokenType::BANG_EQUAL : TokenType::BANG);
@@ -101,7 +102,7 @@ void Scanner::scanToken() {
     if (std::isdigit(c)) {
       number();
     } else if (std::isalpha(c) || c == '_') {
-      identifer();
+      identifier();
     } else {
       reporter.error(line, "unexpected character");
     }
@@ -115,7 +116,7 @@ char Scanner::advance() {
   return source[curr - 1];
 }
 void Scanner::addToken(TokenType type, const Literal &l) {
-  std::string text = source.substr(start, curr);
+  std::string text = source.substr(start, curr - start);
   tokens.emplace_back(Token(type, text, l, line));
 }
 void Scanner::addToken(TokenType type) { addToken(type, std::string{}); }
@@ -147,7 +148,7 @@ void Scanner::is_string() {
     return;
   }
   advance();
-  std::string value = source.substr(start + 1, curr - 1);
+  std::string value = source.substr(start + 1, curr - start - 2);
   addToken(TokenType::STRING, value);
 }
 
@@ -160,8 +161,8 @@ void Scanner::number() {
     while (std::isdigit(peek())) {
       advance();
     }
-    addToken(TokenType::NUMBER, std::stod(source.substr(start, curr)));
   }
+  addToken(TokenType::NUMBER, std::stod(source.substr(start, curr - start)));
 }
 char Scanner::peekNext() {
   if (curr + 1 >= source.length()) {
@@ -173,7 +174,7 @@ void Scanner::identifier() {
   while (std::isalnum(peek()) || peek() == '_') {
     advance();
   }
-  std::string text = source.substr(start, curr);
+  std::string text = source.substr(start, curr - start);
   TokenType type = TokenType::IDENTFIERS;
 
   if (keywords.contains(text)) {
