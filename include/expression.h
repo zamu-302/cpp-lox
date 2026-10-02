@@ -3,7 +3,10 @@
 #include <any>
 #include <memory>
 #include <string>
+#include <type_traits>
 #include <utility>
+#include <variant>
+#include <vector>
 class Binary;
 class Unary;
 class Literals;
@@ -54,9 +57,10 @@ public:
 };
 class Literals : public Expr {
 public:
-  std::string value;
-
+  double val;
+  std::string value = "";
   Literals(std::string value) : value(value) {}
+  Literals(double val) : val{val} {}
 
   std::any accept(Visitor &visitor) override {
     return visitor.visitLiteral(*this);
@@ -74,7 +78,16 @@ public:
     return visitor.visitGrouping(*this);
   }
 };
-
+class Call : public Expr {
+public:
+  std::unique_ptr<Expr> callee;
+  Token paren;
+  std::vector<std::unique_ptr<Expr>> arguments;
+  Call(std::unique_ptr<Expr> callee, const Token &paren,
+       std::vector<std::unique_ptr<Expr>> arguments)
+      : callee{std::move(callee)}, paren{paren},
+        arguments(std::move(arguments)) {}
+};
 class AstPrinter : public Visitor {
 public:
   std::string result;

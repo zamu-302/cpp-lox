@@ -12,7 +12,18 @@ class Interpreter : public Visitor, public StmtVisitor {
 public:
   Interpreter(const ErrorReporter &reporter) : reporter{reporter} {}
   void interpret(std::vector<std::unique_ptr<Stmt>> statements);
-  std::any visitLiteral(const Literals &expr) override { return expr.value; }
+  std::any visitLiteral(const Literals &expr) override {
+    if (expr.value == "") {
+      return expr.val;
+    }
+    if (expr.value == "true") {
+      return true;
+    }
+    if (expr.value == "false") {
+      return false;
+    }
+    return expr.value;
+  }
   std::any visitGrouping(const Grouping &expr) override {
     return evaluate(expr.expression);
   }
@@ -51,7 +62,7 @@ public:
     default:
       break;
     }
-    return NULL;
+    return std::any{};
   }
   std::any visitBinary(const Binary &expr) override {
     std::any left = evaluate(expr.left);
@@ -102,7 +113,7 @@ public:
     default:
       break;
     }
-    return NULL;
+    return std::any{};
   }
 
 private:

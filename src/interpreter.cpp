@@ -57,14 +57,21 @@ void Interpreter::checkNumberOperands(Token token, std::any left,
   throw RuntimeError(token, "operator must be a number.");
 }
 std::string Interpreter::stringify(std::any obj) {
-  if (!obj.has_value()) {
+  if (!obj.has_value())
     return "nil";
-  }
   if (obj.type() == typeid(double)) {
-    std::string text = std::any_cast<std::string>(obj);
-    return text;
+    double d = std::any_cast<double>(obj);
+    std::string s = std::to_string(d);
+    s.erase(s.find_last_not_of('0') + 1);
+    if (s.back() == '.')
+      s.pop_back();
+    return s;
   }
-  return std::any_cast<std::string>(obj);
+  if (obj.type() == typeid(bool))
+    return std::any_cast<bool>(obj) ? "true" : "false";
+  if (obj.type() == typeid(std::string))
+    return std::any_cast<std::string>(obj);
+  return "nil";
 }
 void Interpreter::execute(const std::unique_ptr<Stmt> &stmt) {
   stmt->accept(*this);

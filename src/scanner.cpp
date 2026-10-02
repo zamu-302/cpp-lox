@@ -176,7 +176,6 @@ void Scanner::identifier() {
   }
   std::string text = source.substr(start, curr - start);
   TokenType type = TokenType::IDENTFIERS;
-
   if (keywords.contains(text)) {
     type = keywords.at(text);
   }

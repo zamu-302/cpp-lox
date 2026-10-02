@@ -1,4 +1,5 @@
 #pragma once
+#include <any>
 #include <cstdint>
 #include <iostream>
 #include <string>
@@ -55,10 +56,7 @@ enum class TokenType : uint16_t {
 
 };
 
-struct identifer {
-  std::string val;
-};
-using Literal = std::variant<identifer, std::string, double>;
+using Literal = std::variant<std::string, double>;
 class Token {
 public:
   Token(TokenType type, std::string lexeme, Literal literal, int line)
@@ -145,6 +143,7 @@ public:
       return "Eof";
     }
   }
+  Literal getLit() const { return literal; }
   int getLine() const { return line; }
   std::string getLiteral() { return literal_to_string(literal); }
   TokenType getType() const { return type; }
@@ -154,8 +153,6 @@ public:
           using T = std::decay_t<decltype(v)>;
           if constexpr (std::is_same_v<std::string, T>) {
             return v;
-          } else if constexpr (std::is_same_v<identifer, T>) {
-            return v.val;
           } else {
             return std::to_string(v);
           }

@@ -47,7 +47,14 @@ std::unique_ptr<Expr> Parser::primary() {
     return std::make_unique<Literals>("true");
   }
   if (match({TokenType::NUMBER, TokenType::STRING})) {
-    return std::make_unique<Literals>(previous().getLiteral());
+    auto val = previous().getLit();
+    if (std::holds_alternative<double>(val)) {
+      double d = std::get<double>(val);
+      return std::make_unique<Literals>(d);
+    } else if (std::holds_alternative<std::string>(val)) {
+      std::string s = std::get<std::string>(val);
+      return std::make_unique<Literals>(s);
+    }
   }
   if (match({TokenType::IDENTFIERS})) {
     return std::make_unique<Variable>(previous());
