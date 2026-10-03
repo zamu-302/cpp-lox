@@ -12,6 +12,7 @@
 
 class Interpreter : public Visitor, public StmtVisitor {
 public:
+  Environment globals;
   ClockCallable clockFn;
   Interpreter(const ErrorReporter &reporter) : reporter{reporter} {
     globals.define("clock", (LoxCallable *)&clockFn);
@@ -143,7 +144,6 @@ public:
 
 private:
   ErrorReporter reporter;
-  Environment globals;
   Environment *environment = &globals;
 
   std::any evaluate(const std::unique_ptr<Expr> &expr) {

@@ -1,3 +1,4 @@
+#pragma once
 #include <any>
 #include <chrono>
 #include <string>
@@ -7,7 +8,7 @@ class Interpreter;
 
 class LoxCallable {
 public:
-  virtual std::any call(const Interpreter &interpreter,
+  virtual std::any call(Interpreter &interpreter,
                         const std::vector<std::any> &arguments) = 0;
   virtual int arity() = 0;
   virtual std::string toString() = 0;
@@ -16,7 +17,7 @@ public:
 class ClockCallable : public LoxCallable {
 public:
   int arity() override { return 0; }
-  std::any call(const Interpreter &interpreter,
+  std::any call(Interpreter &interpreter,
                 const std::vector<std::any> &arguments) override {
     auto now = std::chrono::system_clock::now().time_since_epoch();
     return (double)std::chrono::duration_cast<std::chrono::seconds>(now)

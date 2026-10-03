@@ -7,6 +7,7 @@ class PrintStmt;
 class ExprStmt;
 class VarStmt;
 class Block;
+class Function;
 
 class StmtVisitor {
 public:
@@ -14,6 +15,7 @@ public:
   virtual void visitPrintStmt(const PrintStmt &stmt) = 0;
   virtual void visitVarStmt(const VarStmt &stmt) = 0;
   virtual void visitBlockStmt(const Block &stmt) = 0;
+  virtual void visitFunction(const Function &stmt) = 0;
   virtual ~StmtVisitor() = default;
 };
 
@@ -58,4 +60,14 @@ public:
   void accept(StmtVisitor &visitor) override {
     return visitor.visitBlockStmt(*this);
   }
+};
+class Function : public Stmt {
+public:
+  Token name;
+  std::vector<Token> params;
+  std::vector<std::unique_ptr<Stmt>> body;
+  Function(const Token &name, const std::vector<Token> &params,
+           std::vector<std::unique_ptr<Stmt>> &body)
+      : name{name}, params{params}, body{std::move(body)} {}
+  void accept(StmtVisitor &visitor) { visitor.visitFunction(*this); }
 };
