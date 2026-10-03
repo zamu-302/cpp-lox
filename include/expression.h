@@ -13,6 +13,7 @@ class Literals;
 class Grouping;
 class Variable;
 class Assign;
+class Call;
 
 class Visitor {
 public:
@@ -22,6 +23,7 @@ public:
   virtual std::any visitGrouping(const Grouping &grouping) = 0;
   virtual std::any visitVariable(const Variable &variable) = 0;
   virtual std::any visitAssign(const Assign &assign) = 0;
+  virtual std::any visitCall(const Call &call) = 0;
   virtual ~Visitor() = default;
 };
 
@@ -87,6 +89,9 @@ public:
        std::vector<std::unique_ptr<Expr>> arguments)
       : callee{std::move(callee)}, paren{paren},
         arguments(std::move(arguments)) {}
+  std::any accept(Visitor &visitor) override {
+    return visitor.visitCall(*this);
+  }
 };
 class AstPrinter : public Visitor {
 public:

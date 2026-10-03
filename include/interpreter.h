@@ -1,6 +1,7 @@
 #include "environment.h"
 #include "error_reporter.h"
 #include "expression.h"
+#include "loxcallable.h"
 #include "stmt.h"
 #include "token.h"
 #include <any>
@@ -8,9 +9,13 @@
 #include <memory>
 #include <string>
 #include <vector>
+
 class Interpreter : public Visitor, public StmtVisitor {
 public:
-  Interpreter(const ErrorReporter &reporter) : reporter{reporter} {}
+  ClockCallable clockFn;
+  Interpreter(const ErrorReporter &reporter) : reporter{reporter} {
+    globals.define("clock", (LoxCallable *)&clockFn);
+  }
   void interpret(std::vector<std::unique_ptr<Stmt>> statements);
   std::any visitLiteral(const Literals &expr) override {
     if (expr.value == "") {
@@ -37,15 +42,15 @@ public:
     if (stmt.initalizer != nullptr) {
       val = evaluate(stmt.initalizer);
     }
-    environment.define(stmt.name.getLexeme(), val);
+    environment->define(stmt.name.getLexeme(), val);
   }
   std::any visitAssign(const Assign &expr) override {
     std::any value = evaluate(expr.value);
-    environment.assign(expr.name, value);
+    environment->assign(expr.name, value);
     return value;
   }
   std::any visitVariable(const Variable &variable) override {
-    return environment.get(variable.name);
+    return environment->get(variable.name);
   }
   void visitBlockStmt(const Block &stmt) override {
     executeBlock(stmt.state, new Environment(environment));
@@ -115,16 +120,38 @@ public:
     }
     return std::any{};
   }
+  std::any visitCall(const Call &expr) override {
+    std::any callee = evaluate(expr.callee);
+    std::vector<std::any> args;
+    for (auto &arg : expr.arguments) {
+      args.emplace_back(evaluate(std::move(arg)));
+    }
+
+    if (callee.type() != typeid(LoxCallable *)) {
+      throw RuntimeError(expr.paren, "can only call functions and classes.");
+    }
+    LoxCallable *function = std::any_cast<LoxCallable *>(callee);
+    if (args.size() != function->arity()) {
+      throw RuntimeError(expr.paren, "Expected " +
+                                         std::to_string(function->arity()) +
+                                         " arguments but got " +
+                                         std::to_string(args.size()) + ".");
+    }
+
+    return function->call(*this, args);
+  }
 
 private:
   ErrorReporter reporter;
-  Environment environment;
+  Environment globals;
+  Environment *environment = &globals;
+
   std::any evaluate(const std::unique_ptr<Expr> &expr) {
     return expr->accept(*this);
   }
   void executeBlock(const std::vector<std::unique_ptr<Stmt>> &statement,
                     Environment *env) {
-    Environment prev = this->environment;
+    Environment *prev = this->environment;
 
     this->environment = env;
     for (const auto &s : statement) {
