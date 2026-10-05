@@ -1,4 +1,6 @@
 
+#pragma once
+#include "expression.h"
 #include "loxcallable.h"
 #include "stmt.h"
 #include <any>
@@ -8,12 +10,12 @@ class Interpreter;
 
 class LoxFunction : public LoxCallable {
 public:
-  LoxFunction(std::unique_ptr<Stmt> &declaration)
-      : declaration{std::move(declaration)} {}
+  LoxFunction(Function *declaration) : declaration{declaration} {}
   std::any call(Interpreter &interpreter,
                 const std::vector<std::any> &args) override;
   int arity() override;
+  std::string toString() override;
 
 private:
-  std::unique_ptr<Stmt> declaration;
+  const Function *declaration;
 };

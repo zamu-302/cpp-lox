@@ -1,5 +1,6 @@
 #include "../include/parser.h"
 #include <memory>
+#include <string>
 #include <vector>
 
 std::unique_ptr<Expr> Parser::expression() { return assignment(); }
@@ -200,6 +201,9 @@ Token Parser::advance() {
 }
 std::unique_ptr<Stmt> Parser::declaration() {
   try {
+    if (match({TokenType::FUN})) {
+      return function("function");
+    }
     if (match({TokenType::VAR})) {
       return varDeclaration();
     }
@@ -225,4 +229,23 @@ std::vector<std::unique_ptr<Stmt>> Parser::block() {
   }
   consume(TokenType::RIGHT_BRACE, "expected '}' after block.");
   return statement;
+}
+std::unique_ptr<Stmt> Parser::function(const std::string &kind) {
+  Token name = consume(TokenType::IDENTFIERS, "expect" + kind + " name.");
+  consume(TokenType::LEFT_PAREN, "expected '(' after " + kind + " name.");
+  std::vector<Token> paramaters;
+  if (!check(TokenType::RIGHT_PAREN)) {
+    do {
+      if (paramaters.size() >= 255) {
+        error(peek(), "can't have more than 255 paramaters");
+      }
+      paramaters.push_back(
+          consume(TokenType::IDENTFIERS, "expected parameter name."));
+    } while (match({TokenType::COMMA}));
+  }
+  consume(TokenType::RIGHT_PAREN, "expected '}' after parameters");
+
+  consume(TokenType::LEFT_BRACE, "Expected '{' before " + kind + " body.");
+  std::vector<std::unique_ptr<Stmt>> body = block();
+  return std::make_unique<Function>(name, paramaters, body);
 }

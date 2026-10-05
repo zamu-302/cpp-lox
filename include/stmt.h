@@ -8,6 +8,7 @@ class ExprStmt;
 class VarStmt;
 class Block;
 class Function;
+class If;
 
 class StmtVisitor {
 public:
@@ -15,7 +16,8 @@ public:
   virtual void visitPrintStmt(const PrintStmt &stmt) = 0;
   virtual void visitVarStmt(const VarStmt &stmt) = 0;
   virtual void visitBlockStmt(const Block &stmt) = 0;
-  virtual void visitFunction(const Function &stmt) = 0;
+  virtual void visitFunctionStmt(const Function &stmt) = 0;
+  virtual void visitIfStmt(const If &stmt) = 0;
   virtual ~StmtVisitor() = default;
 };
 
@@ -69,5 +71,16 @@ public:
   Function(const Token &name, const std::vector<Token> &params,
            std::vector<std::unique_ptr<Stmt>> &body)
       : name{name}, params{params}, body{std::move(body)} {}
-  void accept(StmtVisitor &visitor) { visitor.visitFunction(*this); }
+  void accept(StmtVisitor &visitor) { visitor.visitFunctionStmt(*this); }
+};
+class If : public Stmt {
+public:
+  std::unique_ptr<Expr> condition;
+  std::unique_ptr<Stmt> thenBranch;
+  std::unique_ptr<Stmt> elseBranch;
+  If(std::unique_ptr<Expr> condition, std::unique_ptr<Stmt> thenBranch,
+     std::unique_ptr<Stmt> elseBranch)
+      : condition{std::move(condition)}, thenBranch{std::move(thenBranch)},
+        elseBranch{std::move(elseBranch)} {}
+  void accept(StmtVisitor &visitor) { visitor.visitIfStmt(*this); }
 };

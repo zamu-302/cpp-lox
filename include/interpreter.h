@@ -14,6 +14,7 @@ class Interpreter : public Visitor, public StmtVisitor {
 public:
   Environment globals;
   ClockCallable clockFn;
+  void visitFunctionStmt(const Function &stmt) override;
   Interpreter(const ErrorReporter &reporter) : reporter{reporter} {
     globals.define("clock", (LoxCallable *)&clockFn);
   }
@@ -121,6 +122,9 @@ public:
     }
     return std::any{};
   }
+  void executeBlock(const std::vector<std::unique_ptr<Stmt>> &statement,
+                    Environment *env);
+
   std::any visitCall(const Call &expr) override {
     std::any callee = evaluate(expr.callee);
     std::vector<std::any> args;
@@ -148,16 +152,6 @@ private:
 
   std::any evaluate(const std::unique_ptr<Expr> &expr) {
     return expr->accept(*this);
-  }
-  void executeBlock(const std::vector<std::unique_ptr<Stmt>> &statement,
-                    Environment *env) {
-    Environment *prev = this->environment;
-
-    this->environment = env;
-    for (const auto &s : statement) {
-      execute(s);
-    }
-    this->environment = prev;
   }
   bool isTruly(std::any expr);
   bool isEqual(std::any left, std::any right);

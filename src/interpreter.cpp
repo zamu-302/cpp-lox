@@ -1,7 +1,13 @@
 #include "../include/interpreter.h"
+#include "../include/loxfunction.h"
 #include <any>
 #include <memory>
 #include <string>
+void Interpreter::visitFunctionStmt(const Function &stmt) {
+  LoxFunction function(stmt);
+  environment->define(stmt.name.getLexeme(), (LoxCallable *)function);
+}
+
 void Interpreter::interpret(std::vector<std::unique_ptr<Stmt>> statements) {
   try {
     for (const auto &statement : statements) {
@@ -49,6 +55,17 @@ void Interpreter::checkNumberOperands(Token token, std::any operand) {
   }
   throw RuntimeError(token, "operator must be an number.");
 }
+void Interpreter::executeBlock(
+    const std::vector<std::unique_ptr<Stmt>> &statement, Environment *env) {
+  Environment *prev = this->environment;
+
+  this->environment = env;
+  for (const auto &s : statement) {
+    execute(s);
+  }
+  this->environment = prev;
+}
+
 void Interpreter::checkNumberOperands(Token token, std::any left,
                                       std::any right) {
   if (left.type() == typeid(double) && right.type() == typeid(double)) {
