@@ -14,6 +14,7 @@ class Interpreter : public Visitor, public StmtVisitor {
 public:
   Environment globals;
   ClockCallable clockFn;
+  void visitReturnStmt(const Return &stmt) override;
   void visitFunctionStmt(const Function &stmt) override;
   Interpreter(const ErrorReporter &reporter) : reporter{reporter} {
     globals.define("clock", (LoxCallable *)&clockFn);

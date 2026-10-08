@@ -9,6 +9,7 @@ class VarStmt;
 class Block;
 class Function;
 class If;
+class Return;
 
 class StmtVisitor {
 public:
@@ -18,6 +19,7 @@ public:
   virtual void visitBlockStmt(const Block &stmt) = 0;
   virtual void visitFunctionStmt(const Function &stmt) = 0;
   virtual void visitIfStmt(const If &stmt) = 0;
+  virtual void visitReturnStmt(const Return &stmt) = 0;
   virtual ~StmtVisitor() = default;
 };
 
@@ -83,4 +85,14 @@ public:
       : condition{std::move(condition)}, thenBranch{std::move(thenBranch)},
         elseBranch{std::move(elseBranch)} {}
   void accept(StmtVisitor &visitor) { visitor.visitIfStmt(*this); }
+};
+class Return : public Stmt {
+public:
+  std::unique_ptr<Expr> value;
+  Token keyword;
+  Return(Token keyword, std::unique_ptr<Expr> &value)
+      : keyword{keyword}, value{std::move(value)} {}
+  void accept(StmtVisitor &visitor) override {
+    return visitor.visitReturnStmt(*this);
+  }
 };

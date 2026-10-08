@@ -3,8 +3,16 @@
 #include <any>
 #include <memory>
 #include <string>
+void Interpreter::visitReturnStmt(const Return &stmt) {
+  std::any value = nullptr;
+  if (stmt.value != nullptr) {
+    value = evaluate(stmt.value);
+  }
+  throw ReturnException(value);
+}
 void Interpreter::visitFunctionStmt(const Function &stmt) {
-  LoxFunction function(stmt);
+
+  LoxFunction *function = new LoxFunction(&stmt, environment);
   environment->define(stmt.name.getLexeme(), (LoxCallable *)function);
 }
 

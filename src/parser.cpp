@@ -178,10 +178,22 @@ std::unique_ptr<Stmt> Parser::statement() {
   if (match({TokenType::PRINT})) {
     return printStatement();
   }
+  if (match({TokenType::RETURN})) {
+    return returnStatement();
+  }
   if (match({TokenType::LEFT_BRACE})) {
     return std::make_unique<Block>(block());
   }
   return expressionStatement();
+}
+std::unique_ptr<Stmt> Parser::returnStatement() {
+  Token keyword = previous();
+  std::unique_ptr<Expr> value = nullptr;
+  if (!check(TokenType::SEMICOLON)) {
+    value = expression();
+  }
+  consume(TokenType::SEMICOLON, "expected ';' after return value");
+  return std::make_unique<Return>(keyword, value);
 }
 std::unique_ptr<Stmt> Parser::printStatement() {
   std::unique_ptr<Expr> value = expression();

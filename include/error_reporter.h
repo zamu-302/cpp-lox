@@ -1,5 +1,6 @@
 #pragma once
 #include "token.h"
+#include <any>
 #include <iostream>
 #include <stdexcept>
 #include <string>
@@ -15,6 +16,12 @@ public:
 private:
   Token token;
   std::string message;
+};
+class ReturnException : public std::runtime_error {
+public:
+  std::any value;
+  ReturnException(std::any value)
+      : std::runtime_error{"return"}, value{value} {}
 };
 
 class ErrorReporter {
