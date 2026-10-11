@@ -9,6 +9,7 @@ class VarStmt;
 class Block;
 class Function;
 class If;
+class While;
 class Return;
 
 class StmtVisitor {
@@ -19,6 +20,7 @@ public:
   virtual void visitBlockStmt(const Block &stmt) = 0;
   virtual void visitFunctionStmt(const Function &stmt) = 0;
   virtual void visitIfStmt(const If &stmt) = 0;
+  virtual void visitWhileStmt(const While &stmt) = 0;
   virtual void visitReturnStmt(const Return &stmt) = 0;
   virtual ~StmtVisitor() = default;
 };
@@ -85,6 +87,14 @@ public:
       : condition{std::move(condition)}, thenBranch{std::move(thenBranch)},
         elseBranch{std::move(elseBranch)} {}
   void accept(StmtVisitor &visitor) { visitor.visitIfStmt(*this); }
+};
+class While : public Stmt {
+public:
+  std::unique_ptr<Expr> condition;
+  std::unique_ptr<Stmt> body;
+  While(std::unique_ptr<Expr> condition, std::unique_ptr<Stmt> body)
+      : condition{std::move(condition)}, body{std::move(body)} {}
+  void accept(StmtVisitor &visitor) { visitor.visitWhileStmt(*this); }
 };
 class Return : public Stmt {
 public:

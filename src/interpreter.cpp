@@ -10,6 +10,32 @@ void Interpreter::visitReturnStmt(const Return &stmt) {
   }
   throw ReturnException(value);
 }
+std::any Interpreter::visitLogical(const Logical &logical) {
+  std::any left = evaluate(logical.left);
+
+  if (logical.token.getType() == TokenType::OR) {
+    if (isTruly(left)) {
+      return left;
+    }
+  } else {
+    if (!isTruly(left)) {
+      return left;
+    }
+  }
+  return evaluate(logical.right);
+}
+void Interpreter::visitIfStmt(const If &stmt) {
+  if (isTruly(evaluate(stmt.condition))) {
+    execute(stmt.elseBranch);
+  } else if (stmt.elseBranch != nullptr) {
+    execute(stmt.elseBranch);
+  }
+}
+void Interpreter::visitWhileStmt(const While &stmt) {
+  while (isTruly(evaluate(stmt.condition))) {
+    execute(stmt.body);
+  }
+}
 void Interpreter::visitFunctionStmt(const Function &stmt) {
 
   LoxFunction *function = new LoxFunction(&stmt, environment);

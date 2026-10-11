@@ -112,6 +112,15 @@ std::unique_ptr<Expr> Parser::orExpr() {
   }
   return expr;
 }
+std::unique_ptr<Expr> Parser::andExpr() {
+  std::unique_ptr<Expr> expr = equality();
+  while (match({TokenType::AND})) {
+    Token opr = previous();
+    std::unique_ptr<Expr> right = equality();
+    expr = std::make_unique<Logical>(std::move(expr), opr, std::move(right));
+  }
+  return expr;
+}
 std::unique_ptr<Expr> Parser::equality() {
   std::unique_ptr<Expr> expr = comparsion();
   while (match({TokenType::BANG_EQUAL, TokenType::EQUAL_EQUAL})) {
@@ -186,6 +195,12 @@ std::vector<std::unique_ptr<Stmt>> Parser::parse() {
 std::unique_ptr<Stmt> Parser::statement() {
   if (match({TokenType::IF})) {
     return ifStatement();
+  }
+  if (match({TokenType::WHILE})) {
+    return whileStatement();
+  }
+  if (match({TokenType::FOR})) {
+    return forStatement();
   }
   if (match({TokenType::PRINT})) {
     return printStatement();
@@ -267,6 +282,59 @@ std::unique_ptr<Stmt> Parser::ifStatement() {
   return std::make_unique<If>(std::move(condition), std::move(thenBranch),
                               std::move(elseBranch));
 }
+std::unique_ptr<Stmt> Parser::whileStatement() {
+  consume(TokenType::LEFT_PAREN, "expected '(' after while.");
+  std::unique_ptr<Expr> condition = expression();
+  consume(TokenType::RIGHT_PAREN, "expected ')' after while.");
+  std::unique_ptr<Stmt> body = statement();
+  return std::make_unique<While>(std::move(condition), std::move(body));
+}
+std::unique_ptr<Stmt> Parser::forStatement() {
+  consume(TokenType::LEFT_PAREN, "expected '(' after for.");
+  std::unique_ptr<Stmt> initalizer = nullptr;
+  if (match({TokenType::SEMICOLON})) {
+    initalizer = nullptr;
+  } else if (match({TokenType::VAR})) {
+    initalizer = varDeclaration();
+  } else {
+    initalizer = expressionStatement();
+  }
+
+  std::unique_ptr<Expr> condition = nullptr;
+  if (!check(TokenType::SEMICOLON)) {
+    condition = expression();
+  }
+  consume(TokenType::SEMICOLON, "Expected ';' after intializing.");
+
+  std::unique_ptr<Expr> increment = nullptr;
+  if (!check(TokenType::RIGHT_PAREN)) {
+    increment = expression();
+  }
+  consume(TokenType::RIGHT_PAREN, "expected ')' after '('.");
+  std::unique_ptr<Stmt> body = statement();
+
+  if (increment != nullptr) {
+    std::vector<std::unique_ptr<Stmt>> stmts;
+    stmts.push_back(std::move(body));
+    stmts.push_back(std::make_unique<ExprStmt>(std::move(increment)));
+
+    body = std::make_unique<Block>(std::move(stmts));
+  }
+  if (condition == nullptr) {
+    condition = std::make_unique<Literals>("true");
+  }
+  body = std::make_unique<While>(std::move(condition), std::move(body));
+
+  if (initalizer != nullptr) {
+    std::vector<std::unique_ptr<Stmt>> stmts;
+    stmts.push_back(std::move(initalizer));
+    stmts.push_back(std::move(body));
+
+    body = std::make_unique<Block>(std::move(stmts));
+  }
+  return body;
+}
+
 std::unique_ptr<Stmt> Parser::function(const std::string &kind) {
   Token name = consume(TokenType::IDENTFIERS, "expect" + kind + " name.");
   consume(TokenType::LEFT_PAREN, "expected '(' after " + kind + " name.");
