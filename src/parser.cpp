@@ -91,7 +91,7 @@ std::unique_ptr<Expr> Parser::primary() {
   throw error(peek(), "Expect expression");
 }
 std::unique_ptr<Expr> Parser::assignment() {
-  std::unique_ptr<Expr> expr = equality();
+  std::unique_ptr<Expr> expr = orExpr();
   if (match({TokenType::EQUAL})) {
     Token equals = previous();
     std::unique_ptr<Expr> value = assignment();
@@ -100,6 +100,15 @@ std::unique_ptr<Expr> Parser::assignment() {
       return std::make_unique<Assign>(name, std::move(value));
     }
     reporter.error(equals, "Invalid assignment target.");
+  }
+  return expr;
+}
+std::unique_ptr<Expr> Parser::orExpr() {
+  std::unique_ptr<Expr> expr = andExpr();
+  while (match({TokenType::OR})) {
+    Token opr = previous();
+    std::unique_ptr<Expr> right = andExpr();
+    expr = std::make_unique<Logical>(std::move(expr), opr, std::move(right));
   }
   return expr;
 }
@@ -175,6 +184,9 @@ std::vector<std::unique_ptr<Stmt>> Parser::parse() {
   return statements;
 }
 std::unique_ptr<Stmt> Parser::statement() {
+  if (match({TokenType::IF})) {
+    return ifStatement();
+  }
   if (match({TokenType::PRINT})) {
     return printStatement();
   }
@@ -241,6 +253,19 @@ std::vector<std::unique_ptr<Stmt>> Parser::block() {
   }
   consume(TokenType::RIGHT_BRACE, "expected '}' after block.");
   return statement;
+}
+std::unique_ptr<Stmt> Parser::ifStatement() {
+  consume(TokenType::LEFT_PAREN, "expected '(' after if.");
+  std::unique_ptr<Expr> condition = expression();
+  consume(TokenType::RIGHT_PAREN, "expected ')' after an if condition.");
+
+  std::unique_ptr<Stmt> thenBranch = statement();
+  std::unique_ptr<Stmt> elseBranch = nullptr;
+  if (match({TokenType::ELSE})) {
+    elseBranch = statement();
+  }
+  return std::make_unique<If>(std::move(condition), std::move(thenBranch),
+                              std::move(elseBranch));
 }
 std::unique_ptr<Stmt> Parser::function(const std::string &kind) {
   Token name = consume(TokenType::IDENTFIERS, "expect" + kind + " name.");

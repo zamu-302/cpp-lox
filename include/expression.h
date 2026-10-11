@@ -10,6 +10,7 @@
 class Binary;
 class Unary;
 class Literals;
+class Logical;
 class Grouping;
 class Variable;
 class Assign;
@@ -24,6 +25,7 @@ public:
   virtual std::any visitVariable(const Variable &variable) = 0;
   virtual std::any visitAssign(const Assign &assign) = 0;
   virtual std::any visitCall(const Call &call) = 0;
+  virtual std::any visitLogical(const Logical &logical) = 0;
   virtual ~Visitor() = default;
 };
 
@@ -91,6 +93,17 @@ public:
         arguments(std::move(arguments)) {}
   std::any accept(Visitor &visitor) override {
     return visitor.visitCall(*this);
+  }
+};
+class Logical : public Expr {
+public:
+  std::unique_ptr<Expr> left;
+  Token token;
+  std::unique_ptr<Expr> right;
+  Logical(std::unique_ptr<Expr> left, Token token, std::unique_ptr<Expr> right)
+      : left{std::move(left)}, token{token}, right{std::move(right)} {}
+  std::any accept(Visitor &visitor) override {
+    return visitor.visitLogical(*this);
   }
 };
 class AstPrinter : public Visitor {

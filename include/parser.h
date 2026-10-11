@@ -34,7 +34,8 @@ private:
   std::unique_ptr<Expr> finishCall(std::unique_ptr<Expr> callee);
   std::unique_ptr<Expr> unary();
   std::unique_ptr<Expr> primary();
-
+  std::unique_ptr<Expr> orExpr();
+  std::unique_ptr<Expr> andExpr();
   // helper
   bool match(std::initializer_list<TokenType> types);
   bool isAtEnd();
@@ -49,6 +50,7 @@ private:
   std::unique_ptr<Stmt> statement();
   std::unique_ptr<Stmt> declaration();
   std::unique_ptr<Stmt> printStatement();
+  std::unique_ptr<Stmt> ifStatment();
   std::unique_ptr<Stmt> expressionStatement();
   std::unique_ptr<Stmt> varDeclaration();
   std::unique_ptr<Stmt> function(const std::string &kind);
