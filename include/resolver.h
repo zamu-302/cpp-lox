@@ -1,4 +1,5 @@
 #pragma once
+#include "error_reporter.h"
 #include "expression.h"
 #include "interpreter.h"
 #include "stmt.h"
@@ -11,7 +12,8 @@
 
 class Resolver : public Visitor, public StmtVisitor {
 public:
-  Resolver(Interpreter interpreter) : interpreter{interpreter} {}
+  Resolver(Interpreter interpreter, ErrorReporter reporter)
+      : interpreter{interpreter}, reporter{reporter} {}
   void resolve(const std::vector<std::unique_ptr<Stmt>> &stmts);
 
   // stmt visitors
@@ -35,12 +37,15 @@ public:
 
 private:
   Interpreter interpreter;
+  ErrorReporter reporter;
   std::vector<std::unordered_map<std::string, bool>> scopes;
   // helpers
   void beginScope();
   void endScope();
   void resolve(const std::unique_ptr<Stmt> &stmt);
   void resolve(const std::unique_ptr<Expr> &expr);
+  void resolveLocal(const Expr *expr, Token token);
+  void resolveFunction(const Function *stmt);
   void declare(Token name);
   void define(Token name);
 };
