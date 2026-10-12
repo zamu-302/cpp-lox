@@ -14,6 +14,7 @@ class Interpreter : public Visitor, public StmtVisitor {
 public:
   Environment globals;
   ClockCallable clockFn;
+  void resolve(const Expr *expr, int depth);
   void visitIfStmt(const If &stmt) override;
   void visitReturnStmt(const Return &stmt) override;
   void visitFunctionStmt(const Function &stmt) override;
@@ -152,6 +153,7 @@ public:
 
 private:
   ErrorReporter reporter;
+  std::unordered_map<const Expr *, int> locals;
   Environment *environment = &globals;
 
   std::any evaluate(const std::unique_ptr<Expr> &expr) {

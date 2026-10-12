@@ -24,6 +24,7 @@ public:
   void visitIfStmt(const If &stmt) override;
   void visitPrintStmt(const PrintStmt &stmt) override;
   void visitWhileStmt(const While &stmt) override;
+  void visitReturnStmt(const Return &stmt) override;
 
   // expr visitors
   std::any visitVariable(const Variable &expr) override;

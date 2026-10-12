@@ -74,5 +74,55 @@ void Resolver::visitFunctionStmt(const Function &stmt) {
 void Resolver::resolveFunction(const Function *stmt) {
   beginScope();
   for (const auto &param : stmt->params) {
+    declare(param);
+    define(param);
   }
+  resolve(stmt->body);
+  endScope();
+}
+void Resolver::visitExprStmt(const ExprStmt &stmt) { resolve(stmt.expr); }
+void Resolver::visitIfStmt(const If &stmt) {
+  resolve(stmt.condition);
+  resolve(stmt.thenBranch);
+  if (stmt.elseBranch != nullptr) {
+    resolve(stmt.elseBranch);
+  }
+}
+void Resolver::visitPrintStmt(const PrintStmt &stmt) { resolve(stmt.expr); }
+void Resolver::visitReturnStmt(const Return &stmt) {
+  if (stmt.value == nullptr) {
+    return;
+  }
+  resolve(stmt.value);
+}
+void Resolver::visitWhileStmt(const While &stmt) {
+  resolve(stmt.condition);
+  resolve(stmt.body);
+}
+std::any Resolver::visitBinary(const Binary &expr) {
+  resolve(expr.left);
+  resolve(expr.right);
+  return std::any{};
+}
+std::any Resolver::visitCall(const Call &expr) {
+  resolve(expr.callee);
+  for (auto &args : expr.arguments) {
+    resolve(args);
+  }
+  return std::any{};
+}
+std::any Resolver::visitGrouping(const Grouping &expr) {
+  resolve(expr.expression);
+  return std::any{};
+}
+std::any Resolver::visitLiteral(const Literals &expr) { return std::any{}; }
+
+std::any Resolver::visitUnary(const Unary &expr) {
+  resolve(expr.right);
+  return std::any{};
+}
+std::any Resolver::visitLogical(const Logical &expr) {
+  resolve(expr.left);
+  resolve(expr.right);
+  return std::any{};
 }
