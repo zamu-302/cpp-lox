@@ -57,8 +57,16 @@ public:
     return value;
   }
   std::any visitVariable(const Variable &variable) override {
-    return environment->get(variable.name);
+    return lookupVariable(variable.name, &variable);
   }
+  std::any lookupVariable(Token name, const Expr *expr) {
+    if (locals.contains(expr)) {
+      return environment->getAt(locals[expr], name.getLexeme());
+    } else {
+      return globals.get(name);
+    }
+  }
+
   void visitBlockStmt(const Block &stmt) override {
     executeBlock(stmt.state, new Environment(environment));
   }

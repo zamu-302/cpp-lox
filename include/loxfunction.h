@@ -10,7 +10,7 @@ class Interpreter;
 
 class LoxFunction : public LoxCallable {
 public:
-  LoxFunction(Function *declaration, Environment *closure)
+  LoxFunction(const Function *declaration, Environment *closure)
       : declaration{declaration}, closure{closure} {}
   std::any call(Interpreter &interpreter,
                 const std::vector<std::any> &args) override;

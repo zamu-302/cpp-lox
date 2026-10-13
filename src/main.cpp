@@ -31,7 +31,13 @@ void Lox::run(const std::string &line) {
   if (ErrorReporter::hadError) {
     std::exit(65);
   }
+
   Interpreter interpreter(reporter);
+  Resolver resolver(interpreter, reporter);
+  resolver.resolve(statments);
+  if (ErrorReporter::hadError) {
+    return;
+  }
   interpreter.interpret(std::move(statments));
 
   if (ErrorReporter::hadRuntimeError) {

@@ -1,7 +1,6 @@
 #pragma once
 #include "error_reporter.h"
 #include "expression.h"
-#include "interpreter.h"
 #include "stmt.h"
 #include "token.h"
 #include <map>
@@ -9,10 +8,15 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+enum class FunctionType {
+  NONE,
+  FUNCTION,
+};
 
+class Interpreter;
 class Resolver : public Visitor, public StmtVisitor {
 public:
-  Resolver(Interpreter interpreter, ErrorReporter reporter)
+  Resolver(Interpreter &interpreter, ErrorReporter reporter)
       : interpreter{interpreter}, reporter{reporter} {}
   void resolve(const std::vector<std::unique_ptr<Stmt>> &stmts);
 
@@ -37,7 +41,7 @@ public:
   std::any visitUnary(const Unary &expr) override;
 
 private:
-  Interpreter interpreter;
+  Interpreter &interpreter;
   ErrorReporter reporter;
   std::vector<std::unordered_map<std::string, bool>> scopes;
   // helpers
@@ -46,7 +50,9 @@ private:
   void resolve(const std::unique_ptr<Stmt> &stmt);
   void resolve(const std::unique_ptr<Expr> &expr);
   void resolveLocal(const Expr *expr, Token token);
-  void resolveFunction(const Function *stmt);
+  void resolveFunction(const Function *stmt, FunctionType type);
   void declare(Token name);
   void define(Token name);
+
+  FunctionType curr = FunctionType::NONE;
 };

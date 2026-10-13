@@ -1,4 +1,6 @@
 #include "../include/resolver.h"
+#include "../include/interpreter.h"
+
 #include <any>
 #include <memory>
 #include <unordered_map>
@@ -43,6 +45,9 @@ void Resolver::declare(Token name) {
     return;
   }
   auto &scope = scopes.back();
+  if (scope.contains(name.getLexeme())) {
+    reporter.error(name, "Already assigned variable in this scope");
+  }
   scope[name.getLexeme()] = false;
 }
 std::any Resolver::visitVariable(const Variable &expr) {
@@ -69,9 +74,11 @@ std::any Resolver::visitAssign(const Assign &expr) {
 void Resolver::visitFunctionStmt(const Function &stmt) {
   declare(stmt.name);
   define(stmt.name);
-  resolveFunction(&stmt);
+  resolveFunction(&stmt, FunctionType::FUNCTION);
 }
-void Resolver::resolveFunction(const Function *stmt) {
+void Resolver::resolveFunction(const Function *stmt, FunctionType type) {
+  FunctionType enclosing = curr;
+  curr = type;
   beginScope();
   for (const auto &param : stmt->params) {
     declare(param);
@@ -79,6 +86,7 @@ void Resolver::resolveFunction(const Function *stmt) {
   }
   resolve(stmt->body);
   endScope();
+  curr = enclosing;
 }
 void Resolver::visitExprStmt(const ExprStmt &stmt) { resolve(stmt.expr); }
 void Resolver::visitIfStmt(const If &stmt) {
@@ -90,6 +98,9 @@ void Resolver::visitIfStmt(const If &stmt) {
 }
 void Resolver::visitPrintStmt(const PrintStmt &stmt) { resolve(stmt.expr); }
 void Resolver::visitReturnStmt(const Return &stmt) {
+  if (curr == FunctionType::NONE) {
+    reporter.error(stmt.keyword, "can't return from Top level code.");
+  }
   if (stmt.value == nullptr) {
     return;
   }

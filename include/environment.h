@@ -12,7 +12,19 @@ public:
 
   Environment() : enclosing{nullptr} {}
   Environment(Environment *enclosing) : enclosing{enclosing} {}
-
+  std::any getAt(int distance, const std::string &name) {
+    return ancestor(distance)->values[name];
+  }
+  Environment *ancestor(int distance) {
+    auto enviroment = this;
+    for (int i = 0; i < distance; i++) {
+      enviroment = enviroment->enclosing;
+    }
+    return enviroment;
+  }
+  void assignAt(int distance, Token name, std::any value) {
+    ancestor(distance)->values[name.getLexeme()] = value;
+  }
   void define(const std::string &name, std::any obj) { values[name] = obj; }
   std::any get(const Token &name) {
     if (values.contains(name.getLexeme())) {
