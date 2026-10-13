@@ -24,6 +24,9 @@ std::any Interpreter::visitLogical(const Logical &logical) {
   }
   return evaluate(logical.right);
 }
+void Interpreter::visitClassStmt(const CLASS &stmt) {
+  environment->define(stmt.token.getLexeme(), std::any{});
+}
 void Interpreter::resolve(const Expr *expr, int depth) { locals[expr] = depth; }
 void Interpreter::visitIfStmt(const If &stmt) {
   if (isTruly(evaluate(stmt.condition))) {

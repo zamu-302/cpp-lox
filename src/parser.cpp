@@ -24,6 +24,7 @@ std::unique_ptr<Expr> Parser::term() {
   }
   return expr;
 }
+
 std::unique_ptr<Expr> Parser::factor() {
   std::unique_ptr<Expr> expr = unary();
   while (match({TokenType::SLASH, TokenType::STAR})) {
@@ -188,7 +189,10 @@ void Parser::synchronize() {
 std::vector<std::unique_ptr<Stmt>> Parser::parse() {
   std::vector<std::unique_ptr<Stmt>> statements;
   while (!isAtEnd()) {
-    statements.emplace_back(declaration());
+    auto stmt = declaration();
+    if (stmt != nullptr) {
+      statements.emplace_back(std::move(stmt));
+    }
   }
   return statements;
 }
@@ -240,6 +244,9 @@ Token Parser::advance() {
 }
 std::unique_ptr<Stmt> Parser::declaration() {
   try {
+    if (match({TokenType::CLASS})) {
+      return classDeclaration();
+    }
     if (match({TokenType::FUN})) {
       return function("function");
     }
@@ -251,6 +258,16 @@ std::unique_ptr<Stmt> Parser::declaration() {
     synchronize();
     return nullptr;
   }
+}
+std::unique_ptr<CLASS> Parser::classDeclaration() {
+  Token name = consume(TokenType::IDENTFIERS, "Expected class Name.");
+  consume(TokenType::LEFT_BRACE, "expected '{' after class name.");
+  std::vector<std::unique_ptr<Function>> methods;
+  while (!check(TokenType::RIGHT_BRACE) && !isAtEnd()) {
+    methods.push_back(std::move(function("method")));
+  }
+  consume(TokenType::RIGHT_BRACE, "expected '}' after class body.");
+  return std::make_unique<CLASS>(name, std::move(methods));
 }
 std::unique_ptr<Stmt> Parser::varDeclaration() {
   Token name = consume(TokenType::IDENTFIERS, "expected variable name.");
@@ -264,7 +281,10 @@ std::unique_ptr<Stmt> Parser::varDeclaration() {
 std::vector<std::unique_ptr<Stmt>> Parser::block() {
   std::vector<std::unique_ptr<Stmt>> statement;
   while (!check(TokenType::RIGHT_BRACE) && !isAtEnd()) {
-    statement.push_back(declaration());
+    auto stmt = declaration();
+    if (stmt != nullptr) {
+      statement.push_back(std::move(stmt));
+    }
   }
   consume(TokenType::RIGHT_BRACE, "expected '}' after block.");
   return statement;
@@ -335,7 +355,7 @@ std::unique_ptr<Stmt> Parser::forStatement() {
   return body;
 }
 
-std::unique_ptr<Stmt> Parser::function(const std::string &kind) {
+std::unique_ptr<Function> Parser::function(const std::string &kind) {
   Token name = consume(TokenType::IDENTFIERS, "expect" + kind + " name.");
   consume(TokenType::LEFT_PAREN, "expected '(' after " + kind + " name.");
   std::vector<Token> paramaters;

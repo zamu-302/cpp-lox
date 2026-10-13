@@ -7,9 +7,9 @@
 #include <any>
 #include <charconv>
 #include <memory>
+#include <stdexcept>
 #include <string>
 #include <vector>
-
 class Interpreter : public Visitor, public StmtVisitor {
 public:
   Environment globals;
@@ -19,6 +19,7 @@ public:
   void visitReturnStmt(const Return &stmt) override;
   void visitFunctionStmt(const Function &stmt) override;
   void visitWhileStmt(const While &stmt) override;
+  void visitClassStmt(const CLASS &stmt) override;
   std::any visitLogical(const Logical &logical) override;
   Interpreter(const ErrorReporter &reporter) : reporter{reporter} {
     globals.define("clock", (LoxCallable *)&clockFn);
@@ -53,9 +54,14 @@ public:
   }
   std::any visitAssign(const Assign &expr) override {
     std::any value = evaluate(expr.value);
-    environment->assign(expr.name, value);
+    if (locals.contains(&expr)) {
+      environment->assignAt(locals[&expr], expr.name, value);
+    } else {
+      environment->assign(expr.name, value);
+    }
     return value;
   }
+
   std::any visitVariable(const Variable &variable) override {
     return lookupVariable(variable.name, &variable);
   }

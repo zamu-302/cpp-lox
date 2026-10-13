@@ -21,10 +21,6 @@ void Lox::runPrompt() {
 void Lox::run(const std::string &line) {
   Scanner scan(line, reporter);
   std::vector<Token> tokens = scan.scanTokens();
-  for (const auto &token : tokens) {
-    std::cout << (int)token.getType() << " " << token.getLexeme() << " "
-              << token.getLine() << '\n';
-  }
   Parser parser(tokens, reporter);
   std::vector<std::unique_ptr<Stmt>> statments = parser.parse();
 
@@ -47,6 +43,6 @@ void Lox::run(const std::string &line) {
 
 int main() {
   Lox lox;
-  lox.run("var name= 1+1; \n print name;");
+  lox.runPrompt();
   return 0;
 }

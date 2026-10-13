@@ -11,6 +11,7 @@ class Function;
 class If;
 class While;
 class Return;
+class CLASS;
 
 class StmtVisitor {
 public:
@@ -22,6 +23,7 @@ public:
   virtual void visitIfStmt(const If &stmt) = 0;
   virtual void visitWhileStmt(const While &stmt) = 0;
   virtual void visitReturnStmt(const Return &stmt) = 0;
+  virtual void visitClassStmt(const CLASS &stmt) = 0;
   virtual ~StmtVisitor() = default;
 };
 
@@ -95,6 +97,14 @@ public:
   While(std::unique_ptr<Expr> condition, std::unique_ptr<Stmt> body)
       : condition{std::move(condition)}, body{std::move(body)} {}
   void accept(StmtVisitor &visitor) { visitor.visitWhileStmt(*this); }
+};
+class CLASS : public Stmt {
+public:
+  Token token;
+  std::vector<std::unique_ptr<Function>> methods;
+  CLASS(Token token, std::vector<std::unique_ptr<Function>> methods)
+      : token{token}, methods{std::move(methods)} {}
+  void accept(StmtVisitor &visitor) override { visitor.visitClassStmt(*this); }
 };
 class Return : public Stmt {
 public:

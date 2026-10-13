@@ -137,3 +137,7 @@ std::any Resolver::visitLogical(const Logical &expr) {
   resolve(expr.right);
   return std::any{};
 }
+void Resolver::visitClassStmt(const CLASS &stmt) {
+  declare(stmt.token);
+  define(stmt.token);
+}
