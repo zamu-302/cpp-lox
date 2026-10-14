@@ -15,6 +15,8 @@ class Grouping;
 class Variable;
 class Assign;
 class Call;
+class Get;
+class Set;
 
 class Visitor {
 public:
@@ -26,6 +28,8 @@ public:
   virtual std::any visitAssign(const Assign &assign) = 0;
   virtual std::any visitCall(const Call &call) = 0;
   virtual std::any visitLogical(const Logical &logical) = 0;
+  virtual std::any visitGet(const Get &get) = 0;
+  virtual std::any visitSet(const Set &set) = 0;
   virtual ~Visitor() = default;
 };
 
@@ -47,6 +51,23 @@ public:
   std::unique_ptr<Expr> left;
   std::unique_ptr<Expr> right;
   Token opr;
+};
+class Get : public Expr {
+public:
+  std::unique_ptr<Expr> obj;
+  Token token;
+  Get(std::unique_ptr<Expr> obj, Token token)
+      : obj{std::move(obj)}, token{token} {}
+  std::any accept(Visitor &visitor) override { return visitor.visitGet(*this); }
+};
+class Set : public Expr {
+public:
+  std::unique_ptr<Expr> obj;
+  Token name;
+  std::unique_ptr<Expr> right;
+  Set(std::unique_ptr<Expr> obj, Token name, std::unique_ptr<Expr> right)
+      : obj{std::move(obj)}, name{name}, right{std::move(right)} {}
+  std::any accept(Visitor &visitor) override { return visitor.visitSet(*this); }
 };
 
 class Unary : public Expr {

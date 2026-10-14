@@ -21,6 +21,8 @@ public:
   void visitWhileStmt(const While &stmt) override;
   void visitClassStmt(const CLASS &stmt) override;
   std::any visitLogical(const Logical &logical) override;
+  std::any visitGet(const Get &expr) override;
+
   Interpreter(const ErrorReporter &reporter) : reporter{reporter} {
     globals.define("clock", (LoxCallable *)&clockFn);
   }

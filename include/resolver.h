@@ -40,6 +40,7 @@ public:
   std::any visitLiteral(const Literals &expr) override;
   std::any visitLogical(const Logical &expr) override;
   std::any visitUnary(const Unary &expr) override;
+  std::any visitGet(const Get &expr) override;
 
 private:
   Interpreter &interpreter;

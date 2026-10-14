@@ -3,6 +3,7 @@
 
 #include <any>
 #include <memory>
+#include <type_traits>
 #include <unordered_map>
 #include <vector>
 
@@ -140,4 +141,8 @@ std::any Resolver::visitLogical(const Logical &expr) {
 void Resolver::visitClassStmt(const CLASS &stmt) {
   declare(stmt.token);
   define(stmt.token);
+}
+std::any Resolver::visitGet(const Get &expr) {
+  resolve(expr.obj);
+  return std::any{};
 }

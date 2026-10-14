@@ -48,6 +48,10 @@ std::unique_ptr<Expr> Parser::call() {
   while (true) {
     if (match({TokenType::LEFT_PAREN})) {
       expr = finishCall(std::move(expr));
+    } else if (match({TokenType::DOT})) {
+      Token name =
+          consume(TokenType::IDENTFIERS, "Expected property after '.' .");
+      expr = std::make_unique<Get>(std::move(expr), name);
     } else {
       break;
     }

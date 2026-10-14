@@ -1,5 +1,7 @@
 #include "../include/interpreter.h"
+#include "../include/loxclass.h"
 #include "../include/loxfunction.h"
+#include "../include/loxinstance.h"
 #include <any>
 #include <memory>
 #include <string>
@@ -9,6 +11,14 @@ void Interpreter::visitReturnStmt(const Return &stmt) {
     value = evaluate(stmt.value);
   }
   throw ReturnException(value);
+}
+std::any Interpreter::visitGet(const Get &expr) {
+  std::any obj = evaluate(expr.obj);
+  if (typeid(LoxInstance *) == obj.type()) {
+    LoxInstance *instances = std::any_cast<LoxInstance *>(obj);
+    return instances->get(expr.token);
+  }
+  return RuntimeError(expr.token, "Only instances have properties.");
 }
 std::any Interpreter::visitLogical(const Logical &logical) {
   std::any left = evaluate(logical.left);
@@ -26,6 +36,8 @@ std::any Interpreter::visitLogical(const Logical &logical) {
 }
 void Interpreter::visitClassStmt(const CLASS &stmt) {
   environment->define(stmt.token.getLexeme(), std::any{});
+  LoxClass klass(stmt.token.getLexeme());
+  environment->assign(stmt.token, klass);
 }
 void Interpreter::resolve(const Expr *expr, int depth) { locals[expr] = depth; }
 void Interpreter::visitIfStmt(const If &stmt) {
