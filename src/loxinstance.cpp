@@ -9,3 +9,6 @@ std::any LoxInstance::get(Token name) {
   }
   return RuntimeError(name, "property not in fields.");
 }
+void LoxInstance::set(Token name, std::any value) {
+  fields[name.getLexeme()] = value;
+}

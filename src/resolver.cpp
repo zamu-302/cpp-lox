@@ -3,7 +3,6 @@
 
 #include <any>
 #include <memory>
-#include <type_traits>
 #include <unordered_map>
 #include <vector>
 
@@ -69,6 +68,7 @@ void Resolver::resolveLocal(const Expr *expr, Token token) {
 }
 std::any Resolver::visitAssign(const Assign &expr) {
   resolve(expr.value);
+
   resolveLocal(&expr, expr.name);
   return std::any{};
 }
@@ -141,8 +141,17 @@ std::any Resolver::visitLogical(const Logical &expr) {
 void Resolver::visitClassStmt(const CLASS &stmt) {
   declare(stmt.token);
   define(stmt.token);
+  for (auto &method : stmt.methods) {
+    FunctionType declaration = FunctionType::METHOD;
+    resolveFunction(method.get(), declaration);
+  }
 }
 std::any Resolver::visitGet(const Get &expr) {
   resolve(expr.obj);
+  return std::any{};
+}
+std::any Resolver::visitSet(const Set &expr) {
+  resolve(expr.obj);
+  resolve(expr.right);
   return std::any{};
 }

@@ -103,6 +103,9 @@ std::unique_ptr<Expr> Parser::assignment() {
     if (auto *var = dynamic_cast<Variable *>(expr.get())) {
       Token name = var->name;
       return std::make_unique<Assign>(name, std::move(value));
+    } else if (auto *get = dynamic_cast<Get *>(expr.get())) {
+      return std::make_unique<Set>(std::move(get->obj), get->token,
+                                   std::move(value));
     }
     reporter.error(equals, "Invalid assignment target.");
   }

@@ -8,8 +8,9 @@
 class LoxClass;
 class LoxInstance {
 public:
-  LoxInstance(LoxClass *klass, ErrorReporter &reporter) : klass{klass} {};
+  LoxInstance(LoxClass *klass) : klass{klass} {};
   std::any get(Token name);
+  void set(Token name, std::any value);
   std::string toString();
 
 private:

@@ -11,6 +11,7 @@
 enum class FunctionType {
   NONE,
   FUNCTION,
+  METHOD,
 };
 
 class Interpreter;
@@ -41,6 +42,7 @@ public:
   std::any visitLogical(const Logical &expr) override;
   std::any visitUnary(const Unary &expr) override;
   std::any visitGet(const Get &expr) override;
+  std::any visitSet(const Set &expr) override;
 
 private:
   Interpreter &interpreter;
