@@ -17,6 +17,7 @@ class Assign;
 class Call;
 class Get;
 class Set;
+class This;
 
 class Visitor {
 public:
@@ -30,6 +31,7 @@ public:
   virtual std::any visitLogical(const Logical &logical) = 0;
   virtual std::any visitGet(const Get &get) = 0;
   virtual std::any visitSet(const Set &set) = 0;
+  virtual std::any visitThis(const This &expr) = 0;
   virtual ~Visitor() = default;
 };
 
@@ -125,6 +127,15 @@ public:
       : left{std::move(left)}, token{token}, right{std::move(right)} {}
   std::any accept(Visitor &visitor) override {
     return visitor.visitLogical(*this);
+  }
+};
+class This : public Expr {
+public:
+  Token name;
+  This(Token name) : name{name} {}
+
+  std::any accept(Visitor &visitor) override {
+    return visitor.visitThis(*this);
   }
 };
 class AstPrinter : public Visitor {

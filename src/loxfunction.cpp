@@ -1,5 +1,6 @@
 #include "../include/loxfunction.h"
 #include "../include/interpreter.h"
+#include "../include/loxinstance.h"
 std::any LoxFunction::call(Interpreter &interpreter,
                            const std::vector<std::any> &args) {
   Environment *enviroment(closure);
@@ -17,4 +18,9 @@ std::any LoxFunction::call(Interpreter &interpreter,
 int LoxFunction::arity() { return declaration->params.size(); }
 std::string LoxFunction::toString() {
   return "<fn " + declaration->name.getLexeme() + ">";
+}
+LoxFunction *LoxFunction::bind(LoxInstance *instance) {
+  Environment enviroment(closure);
+  enviroment.define("this", instance);
+  return new LoxFunction(declaration, &enviroment);
 }

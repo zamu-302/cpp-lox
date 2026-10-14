@@ -5,6 +5,7 @@
 #include <any>
 #include <memory>
 #include <string>
+#include <unordered_map>
 void Interpreter::visitReturnStmt(const Return &stmt) {
   std::any value = nullptr;
   if (stmt.value != nullptr) {
@@ -19,6 +20,17 @@ std::any Interpreter::visitGet(const Get &expr) {
     return instances->get(expr.token);
   }
   return RuntimeError(expr.token, "Only instances have properties.");
+}
+std::any Interpreter::visitSet(const Set &expr) {
+  std::any obj = evaluate(expr.obj);
+  if (obj.type() != typeid(LoxInstance *)) {
+    return RuntimeError(expr.name, "Only Instances have fields.");
+  }
+  std::any value = evaluate(expr.right);
+  LoxInstance *instances = std::any_cast<LoxInstance *>(value);
+  instances->set(expr.name, value);
+
+  return value;
 }
 std::any Interpreter::visitLogical(const Logical &logical) {
   std::any left = evaluate(logical.left);
@@ -36,7 +48,12 @@ std::any Interpreter::visitLogical(const Logical &logical) {
 }
 void Interpreter::visitClassStmt(const CLASS &stmt) {
   environment->define(stmt.token.getLexeme(), std::any{});
-  LoxClass klass(stmt.token.getLexeme());
+  std::unordered_map<std::string, LoxFunction *> methods;
+  for (auto &method : stmt.methods) {
+    LoxFunction *function = new LoxFunction(method.get(), environment);
+    methods[method->name.getLexeme()] = function;
+  }
+  LoxClass klass(stmt.token.getLexeme(), methods);
   environment->assign(stmt.token, klass);
 }
 void Interpreter::resolve(const Expr *expr, int depth) { locals[expr] = depth; }

@@ -7,7 +7,11 @@ std::any LoxInstance::get(Token name) {
   if (fields.contains(name.getLexeme())) {
     return fields[name.getLexeme()];
   }
-  return RuntimeError(name, "property not in fields.");
+  LoxFunction *method = klass->findMethod(name.getLexeme());
+  if (method != nullptr) {
+    return method->bind(this);
+  }
+  throw RuntimeError(name, "property not in fields.");
 }
 void LoxInstance::set(Token name, std::any value) {
   fields[name.getLexeme()] = value;

@@ -141,10 +141,13 @@ std::any Resolver::visitLogical(const Logical &expr) {
 void Resolver::visitClassStmt(const CLASS &stmt) {
   declare(stmt.token);
   define(stmt.token);
+  beginScope();
+  scopes.back()["this"] = true;
   for (auto &method : stmt.methods) {
     FunctionType declaration = FunctionType::METHOD;
     resolveFunction(method.get(), declaration);
   }
+  endScope();
 }
 std::any Resolver::visitGet(const Get &expr) {
   resolve(expr.obj);
@@ -153,5 +156,9 @@ std::any Resolver::visitGet(const Get &expr) {
 std::any Resolver::visitSet(const Set &expr) {
   resolve(expr.obj);
   resolve(expr.right);
+  return std::any{};
+}
+std::any Resolver::visitThis(const This &expr) {
+  resolveLocal(&expr, expr.name);
   return std::any{};
 }

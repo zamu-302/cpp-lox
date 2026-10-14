@@ -2,12 +2,13 @@
 #pragma once
 #include "environment.h"
 #include "loxcallable.h"
+#include "loxinstance.h"
 #include "stmt.h"
 #include <any>
 #include <memory>
 #include <vector>
 class Interpreter;
-
+class LoxInstance;
 class LoxFunction : public LoxCallable {
 public:
   LoxFunction(const Function *declaration, Environment *closure)
@@ -16,6 +17,7 @@ public:
                 const std::vector<std::any> &args) override;
   int arity() override;
   std::string toString() override;
+  LoxFunction *bind(LoxInstance *instance);
 
 private:
   Environment *closure;

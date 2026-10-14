@@ -43,6 +43,7 @@ public:
   std::any visitUnary(const Unary &expr) override;
   std::any visitGet(const Get &expr) override;
   std::any visitSet(const Set &expr) override;
+  std::any visitThis(const This &expr) override;
 
 private:
   Interpreter &interpreter;

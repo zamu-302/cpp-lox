@@ -6,5 +6,10 @@ std::any LoxClass::call(Interpreter &interpreter,
   LoxInstance *instance = new LoxInstance(this);
   return instance;
 }
-
+LoxFunction *LoxClass::findMethod(const std::string &name) {
+  if (methods.contains(name)) {
+    return methods[name];
+  }
+  return nullptr;
+}
 int LoxClass::arity() { return 0; }

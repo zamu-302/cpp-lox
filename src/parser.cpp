@@ -85,6 +85,9 @@ std::unique_ptr<Expr> Parser::primary() {
       return std::make_unique<Literals>(s);
     }
   }
+  if (match({TokenType::THIS})) {
+    return std::make_unique<This>(previous());
+  }
   if (match({TokenType::IDENTFIERS})) {
     return std::make_unique<Variable>(previous());
   }
