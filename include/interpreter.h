@@ -24,6 +24,7 @@ public:
   std::any visitGet(const Get &expr) override;
   std::any visitSet(const Set &expr) override;
   std::any visitThis(const This &expr) override;
+  std::any visitSuper(const Super &expr) override;
   Interpreter(const ErrorReporter &reporter) : reporter{reporter} {
     globals.define("clock", (LoxCallable *)&clockFn);
   }

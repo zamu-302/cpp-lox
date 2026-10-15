@@ -67,6 +67,12 @@ void Interpreter::visitClassStmt(const CLASS &stmt) {
     }
   }
   environment->define(stmt.token.getLexeme(), std::any{});
+
+  if (stmt.superClass != nullptr) {
+    environment = new Environment(environment);
+    environment->define("super", superClass);
+  }
+
   std::unordered_map<std::string, LoxFunction *> methods;
   for (auto &method : stmt.methods) {
     LoxFunction *function = new LoxFunction(method.get(), environment,
@@ -74,6 +80,9 @@ void Interpreter::visitClassStmt(const CLASS &stmt) {
     methods[method->name.getLexeme()] = function;
   }
   LoxClass klass(stmt.token.getLexeme(), methods, superClass);
+  if (superClass != nullptr) {
+    environment = environment->enclosing;
+  }
   environment->assign(stmt.token, klass);
 }
 std::any Interpreter::evaluate(Expr *expr) { return expr->accept(*this); }
@@ -84,6 +93,23 @@ void Interpreter::visitIfStmt(const If &stmt) {
   } else if (stmt.elseBranch != nullptr) {
     execute(stmt.elseBranch);
   }
+}
+std::any Interpreter::visitSuper(const Super &expr) {
+  int distance = locals.at(&expr);
+  LoxClass *superClass =
+      std::any_cast<LoxClass *>(environment->getAt(distance, "super"));
+
+  LoxInstance *instance =
+      std::any_cast<LoxInstance *>(environment->getAt(distance - 1, "this"));
+
+  LoxFunction *method = superClass->findMethod(expr.method.getLexeme());
+
+  if (method == nullptr) {
+    throw RuntimeError(expr.method,
+                       "Undefined property '" + expr.method.getLexeme() + "'.");
+  }
+
+  return method->bind(instance);
 }
 void Interpreter::visitWhileStmt(const While &stmt) {
   while (isTruly(evaluate(stmt.condition))) {

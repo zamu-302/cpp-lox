@@ -17,6 +17,7 @@ enum class FunctionType {
 enum class ClassType {
   NONE,
   CLASS,
+  SUBCLASS,
 };
 class Interpreter;
 class Resolver : public Visitor, public StmtVisitor {
@@ -48,6 +49,7 @@ public:
   std::any visitGet(const Get &expr) override;
   std::any visitSet(const Set &expr) override;
   std::any visitThis(const This &expr) override;
+  std::any visitSuper(const Super &expr) override;
 
 private:
   Interpreter &interpreter;

@@ -152,6 +152,7 @@ void Resolver::visitClassStmt(const CLASS &stmt) {
     if (stmt.superClass->name.getLexeme() == stmt.token.getLexeme()) {
       reporter.error(stmt.token, "class can't inherit from itself.");
     }
+    currClass = ClassType::SUBCLASS;
     resolve(stmt.superClass.get());
   }
   if (stmt.superClass != nullptr) {
@@ -194,4 +195,14 @@ void Resolver::resolve(Expr *expr) {
   if (expr != nullptr) {
     expr->accept(*this);
   }
+}
+std::any Resolver::visitSuper(const Super &expr) {
+  if (currClass == ClassType::NONE) {
+    reporter.error(expr.keyword, "Can't Use Super Keyword outside a class.");
+  } else if (currClass != ClassType::SUBCLASS) {
+    reporter.error(expr.keyword,
+                   "Can't use 'super' in a class with no super class.");
+  }
+  resolveLocal(&expr, expr.keyword);
+  return std::any{};
 }
