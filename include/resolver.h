@@ -13,7 +13,10 @@ enum class FunctionType {
   FUNCTION,
   METHOD,
 };
-
+enum class ClassType {
+  NONE,
+  CLASS,
+};
 class Interpreter;
 class Resolver : public Visitor, public StmtVisitor {
 public:
@@ -60,4 +63,5 @@ private:
   void define(Token name);
 
   FunctionType curr = FunctionType::NONE;
+  ClassType currClass = ClassType::NONE;
 };

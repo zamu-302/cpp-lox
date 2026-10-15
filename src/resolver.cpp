@@ -139,6 +139,8 @@ std::any Resolver::visitLogical(const Logical &expr) {
   return std::any{};
 }
 void Resolver::visitClassStmt(const CLASS &stmt) {
+  ClassType enclosingClass = currClass;
+  currClass = ClassType::CLASS;
   declare(stmt.token);
   define(stmt.token);
   beginScope();
@@ -148,6 +150,7 @@ void Resolver::visitClassStmt(const CLASS &stmt) {
     resolveFunction(method.get(), declaration);
   }
   endScope();
+  currClass = ClassType::NONE;
 }
 std::any Resolver::visitGet(const Get &expr) {
   resolve(expr.obj);

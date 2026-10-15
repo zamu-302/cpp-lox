@@ -23,6 +23,7 @@ public:
   std::any visitLogical(const Logical &logical) override;
   std::any visitGet(const Get &expr) override;
   std::any visitSet(const Set &expr) override;
+  std::any visitThis(const This &expr) override;
 
   Interpreter(const ErrorReporter &reporter) : reporter{reporter} {
     globals.define("clock", (LoxCallable *)&clockFn);
@@ -68,14 +69,7 @@ public:
   std::any visitVariable(const Variable &variable) override {
     return lookupVariable(variable.name, &variable);
   }
-  std::any lookupVariable(Token name, const Expr *expr) {
-    if (locals.contains(expr)) {
-      return environment->getAt(locals[expr], name.getLexeme());
-    } else {
-      return globals.get(name);
-    }
-  }
-
+  std::any lookupVariable(Token name, const Expr *expr);
   void visitBlockStmt(const Block &stmt) override {
     executeBlock(stmt.state, new Environment(environment));
   }

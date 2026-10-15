@@ -32,6 +32,16 @@ std::any Interpreter::visitSet(const Set &expr) {
 
   return value;
 }
+std::any Interpreter::lookupVariable(Token name, const Expr *expr) {
+  if (locals.contains(expr)) {
+    return environment->getAt(locals[expr], name.getLexeme());
+  } else {
+    return globals.get(name);
+  }
+}
+std::any Interpreter::visitThis(const This &expr) {
+  return lookupVariable(expr.name, &expr);
+}
 std::any Interpreter::visitLogical(const Logical &logical) {
   std::any left = evaluate(logical.left);
 
