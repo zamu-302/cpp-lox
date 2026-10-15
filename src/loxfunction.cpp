@@ -10,7 +10,13 @@ std::any LoxFunction::call(Interpreter &interpreter,
   try {
     interpreter.executeBlock(declaration->body, enviroment);
   } catch (ReturnException returnvalue) {
+    if (isIntializer) {
+      return closure->getAt(0, "this");
+    }
     return returnvalue.value;
+  }
+  if (isIntializer) {
+    return closure->getAt(0, "this");
   }
   delete enviroment;
   return std::any{};
@@ -22,5 +28,5 @@ std::string LoxFunction::toString() {
 LoxFunction *LoxFunction::bind(LoxInstance *instance) {
   Environment enviroment(closure);
   enviroment.define("this", instance);
-  return new LoxFunction(declaration, &enviroment);
+  return new LoxFunction(declaration, &enviroment, isIntializer);
 }

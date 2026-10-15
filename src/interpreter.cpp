@@ -57,15 +57,26 @@ std::any Interpreter::visitLogical(const Logical &logical) {
   return evaluate(logical.right);
 }
 void Interpreter::visitClassStmt(const CLASS &stmt) {
+  LoxClass *superClass = nullptr;
+  if (stmt.superClass != nullptr) {
+    std::any eval = evaluate(stmt.superClass.get());
+    try {
+      superClass = std::any_cast<LoxClass *>(eval);
+    } catch (const std::bad_any_cast &) {
+      throw RuntimeError(stmt.superClass->name, "Superclass must be a class.");
+    }
+  }
   environment->define(stmt.token.getLexeme(), std::any{});
   std::unordered_map<std::string, LoxFunction *> methods;
   for (auto &method : stmt.methods) {
-    LoxFunction *function = new LoxFunction(method.get(), environment);
+    LoxFunction *function = new LoxFunction(method.get(), environment,
+                                            method->name.getLexeme() == "init");
     methods[method->name.getLexeme()] = function;
   }
-  LoxClass klass(stmt.token.getLexeme(), methods);
+  LoxClass klass(stmt.token.getLexeme(), methods, superClass);
   environment->assign(stmt.token, klass);
 }
+std::any Interpreter::evaluate(Expr *expr) { return expr->accept(*this); }
 void Interpreter::resolve(const Expr *expr, int depth) { locals[expr] = depth; }
 void Interpreter::visitIfStmt(const If &stmt) {
   if (isTruly(evaluate(stmt.condition))) {
@@ -81,7 +92,7 @@ void Interpreter::visitWhileStmt(const While &stmt) {
 }
 void Interpreter::visitFunctionStmt(const Function &stmt) {
 
-  LoxFunction *function = new LoxFunction(&stmt, environment);
+  LoxFunction *function = new LoxFunction(&stmt, environment, false);
   environment->define(stmt.name.getLexeme(), (LoxCallable *)function);
 }
 

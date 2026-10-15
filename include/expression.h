@@ -7,6 +7,8 @@
 #include <utility>
 #include <variant>
 #include <vector>
+
+// forward declaration
 class Binary;
 class Unary;
 class Literals;
@@ -18,6 +20,7 @@ class Call;
 class Get;
 class Set;
 class This;
+class Super;
 
 class Visitor {
 public:
@@ -32,6 +35,7 @@ public:
   virtual std::any visitGet(const Get &get) = 0;
   virtual std::any visitSet(const Set &set) = 0;
   virtual std::any visitThis(const This &expr) = 0;
+  virtual std::any visitSuper(const Super &expr) = 0;
   virtual ~Visitor() = default;
 };
 
@@ -178,6 +182,13 @@ public:
     expr.accept(*this);
     return result;
   }
+};
+class Super : public Expr {
+public:
+  Token keyword;
+  Token method;
+  Super(Token keyword, Token method) : keyword{keyword}, method{method} {}
+  std::any accept(Visitor &vistor) { return vistor.visitSuper(*this); }
 };
 class Variable : public Expr {
 public:

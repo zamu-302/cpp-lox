@@ -102,8 +102,11 @@ class CLASS : public Stmt {
 public:
   Token token;
   std::vector<std::unique_ptr<Function>> methods;
-  CLASS(Token token, std::vector<std::unique_ptr<Function>> methods)
-      : token{token}, methods{std::move(methods)} {}
+  std::unique_ptr<Variable> superClass;
+  CLASS(Token token, std::vector<std::unique_ptr<Function>> methods,
+        std::unique_ptr<Variable> superClass)
+      : token{token}, methods{std::move(methods)},
+        superClass{std::move(superClass)} {}
   void accept(StmtVisitor &visitor) override { visitor.visitClassStmt(*this); }
 };
 class Return : public Stmt {

@@ -102,7 +102,11 @@ void Resolver::visitReturnStmt(const Return &stmt) {
   if (curr == FunctionType::NONE) {
     reporter.error(stmt.keyword, "can't return from Top level code.");
   }
+
   if (stmt.value == nullptr) {
+    if (curr == FunctionType::INITALIZER) {
+      reporter.error(stmt.keyword, "can't return from an init.");
+    }
     return;
   }
   resolve(stmt.value);
@@ -143,13 +147,30 @@ void Resolver::visitClassStmt(const CLASS &stmt) {
   currClass = ClassType::CLASS;
   declare(stmt.token);
   define(stmt.token);
+
+  if (stmt.superClass != nullptr) {
+    if (stmt.superClass->name.getLexeme() == stmt.token.getLexeme()) {
+      reporter.error(stmt.token, "class can't inherit from itself.");
+    }
+    resolve(stmt.superClass.get());
+  }
+  if (stmt.superClass != nullptr) {
+    beginScope();
+    scopes.back()["super"] = true;
+  }
   beginScope();
   scopes.back()["this"] = true;
   for (auto &method : stmt.methods) {
     FunctionType declaration = FunctionType::METHOD;
+    if (method->name.getLexeme() == "init") {
+      declaration = FunctionType::INITALIZER;
+    }
     resolveFunction(method.get(), declaration);
   }
   endScope();
+  if (stmt.superClass != nullptr) {
+    endScope();
+  }
   currClass = ClassType::NONE;
 }
 std::any Resolver::visitGet(const Get &expr) {
@@ -162,6 +183,15 @@ std::any Resolver::visitSet(const Set &expr) {
   return std::any{};
 }
 std::any Resolver::visitThis(const This &expr) {
+  if (currClass == ClassType::NONE) {
+    reporter.error(expr.name, "There is no 'this' outside of a class.");
+    return std::any{};
+  }
   resolveLocal(&expr, expr.name);
   return std::any{};
+}
+void Resolver::resolve(Expr *expr) {
+  if (expr != nullptr) {
+    expr->accept(*this);
+  }
 }

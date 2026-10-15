@@ -88,6 +88,13 @@ std::unique_ptr<Expr> Parser::primary() {
   if (match({TokenType::THIS})) {
     return std::make_unique<This>(previous());
   }
+  if (match({TokenType::SUPER})) {
+    Token keyword = previous();
+    consume(TokenType::DOT, "Expected '.' after 'super'.");
+    Token method =
+        consume(TokenType::IDENTFIERS, "Expected method name after '.'.");
+    return std::make_unique<Super>(keyword, method);
+  }
   if (match({TokenType::IDENTFIERS})) {
     return std::make_unique<Variable>(previous());
   }
@@ -271,13 +278,19 @@ std::unique_ptr<Stmt> Parser::declaration() {
 }
 std::unique_ptr<CLASS> Parser::classDeclaration() {
   Token name = consume(TokenType::IDENTFIERS, "Expected class Name.");
+  std::unique_ptr<Variable> superclass = nullptr;
+  if (match({TokenType::LESS})) {
+    consume(TokenType::IDENTFIERS, "expected superclass name after '<'.");
+    superclass = std::make_unique<Variable>(previous());
+  }
   consume(TokenType::LEFT_BRACE, "expected '{' after class name.");
   std::vector<std::unique_ptr<Function>> methods;
   while (!check(TokenType::RIGHT_BRACE) && !isAtEnd()) {
     methods.push_back(std::move(function("method")));
   }
   consume(TokenType::RIGHT_BRACE, "expected '}' after class body.");
-  return std::make_unique<CLASS>(name, std::move(methods));
+  return std::make_unique<CLASS>(name, std::move(methods),
+                                 std::move(superclass));
 }
 std::unique_ptr<Stmt> Parser::varDeclaration() {
   Token name = consume(TokenType::IDENTFIERS, "expected variable name.");

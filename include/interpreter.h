@@ -24,7 +24,6 @@ public:
   std::any visitGet(const Get &expr) override;
   std::any visitSet(const Set &expr) override;
   std::any visitThis(const This &expr) override;
-
   Interpreter(const ErrorReporter &reporter) : reporter{reporter} {
     globals.define("clock", (LoxCallable *)&clockFn);
   }
@@ -166,7 +165,7 @@ private:
   ErrorReporter reporter;
   std::unordered_map<const Expr *, int> locals;
   Environment *environment = &globals;
-
+  std::any evaluate(Expr *expr);
   std::any evaluate(const std::unique_ptr<Expr> &expr) {
     return expr->accept(*this);
   }

@@ -11,8 +11,10 @@ class Interpreter;
 class LoxInstance;
 class LoxFunction : public LoxCallable {
 public:
-  LoxFunction(const Function *declaration, Environment *closure)
-      : declaration{declaration}, closure{closure} {}
+  LoxFunction(const Function *declaration, Environment *closure,
+              bool isIntializer)
+      : declaration{declaration}, closure{closure}, isIntializer{isIntializer} {
+  }
   std::any call(Interpreter &interpreter,
                 const std::vector<std::any> &args) override;
   int arity() override;
@@ -22,4 +24,5 @@ public:
 private:
   Environment *closure;
   const Function *declaration;
+  bool isIntializer;
 };

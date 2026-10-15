@@ -11,6 +11,7 @@
 enum class FunctionType {
   NONE,
   FUNCTION,
+  INITALIZER,
   METHOD,
 };
 enum class ClassType {
@@ -59,6 +60,7 @@ private:
   void resolve(const std::unique_ptr<Expr> &expr);
   void resolveLocal(const Expr *expr, Token token);
   void resolveFunction(const Function *stmt, FunctionType type);
+  void resolve(Expr *expr);
   void declare(Token name);
   void define(Token name);
 
