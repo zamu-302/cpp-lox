@@ -23,7 +23,9 @@ private:
   ErrorReporter reporter;
   std::vector<Token> _tokens;
   int curr = 0;
+
   // grammar
+
   std::unique_ptr<Expr> expression();
   std::unique_ptr<Expr> assignment();
   std::unique_ptr<Expr> equality();
@@ -36,17 +38,22 @@ private:
   std::unique_ptr<Expr> primary();
   std::unique_ptr<Expr> orExpr();
   std::unique_ptr<Expr> andExpr();
+
   // helper
+
   bool match(std::initializer_list<TokenType> types);
   bool isAtEnd();
   bool check(TokenType type);
-
   Token advance();
   Token peek() const;
   Token previous() const;
   Token consume(TokenType type, const std::string &message);
-
   void synchronize();
+  ParseError error(Token token, const std::string &str);
+
+  // statements
+
+  std::vector<std::unique_ptr<Stmt>> block();
   std::unique_ptr<Stmt> statement();
   std::unique_ptr<Stmt> declaration();
   std::unique_ptr<Stmt> printStatement();
@@ -58,6 +65,4 @@ private:
   std::unique_ptr<CLASS> classDeclaration();
   std::unique_ptr<Function> function(const std::string &kind);
   std::unique_ptr<Stmt> returnStatement();
-  ParseError error(Token token, const std::string &str);
-  std::vector<std::unique_ptr<Stmt>> block();
 };

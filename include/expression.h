@@ -90,6 +90,8 @@ class Literals : public Expr {
 public:
   double val;
   std::string value = "";
+  bool boolean;
+  Literals(bool boolean) : boolean{boolean} {}
   Literals(std::string value) : value(value) {}
   Literals(double val) : val{val} {}
 

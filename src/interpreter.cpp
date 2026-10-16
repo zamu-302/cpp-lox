@@ -6,6 +6,7 @@
 #include <memory>
 #include <string>
 #include <unordered_map>
+
 void Interpreter::visitReturnStmt(const Return &stmt) {
   std::any value = nullptr;
   if (stmt.value != nullptr) {
@@ -13,6 +14,7 @@ void Interpreter::visitReturnStmt(const Return &stmt) {
   }
   throw ReturnException(value);
 }
+
 std::any Interpreter::visitGet(const Get &expr) {
   std::any obj = evaluate(expr.obj);
   if (typeid(LoxInstance *) == obj.type()) {
@@ -21,6 +23,7 @@ std::any Interpreter::visitGet(const Get &expr) {
   }
   return RuntimeError(expr.token, "Only instances have properties.");
 }
+
 std::any Interpreter::visitSet(const Set &expr) {
   std::any obj = evaluate(expr.obj);
   if (obj.type() != typeid(LoxInstance *)) {
@@ -32,6 +35,7 @@ std::any Interpreter::visitSet(const Set &expr) {
 
   return value;
 }
+
 std::any Interpreter::lookupVariable(Token name, const Expr *expr) {
   if (locals.contains(expr)) {
     return environment->getAt(locals[expr], name.getLexeme());
@@ -39,9 +43,11 @@ std::any Interpreter::lookupVariable(Token name, const Expr *expr) {
     return globals.get(name);
   }
 }
+
 std::any Interpreter::visitThis(const This &expr) {
   return lookupVariable(expr.name, &expr);
 }
+
 std::any Interpreter::visitLogical(const Logical &logical) {
   std::any left = evaluate(logical.left);
 
@@ -56,6 +62,7 @@ std::any Interpreter::visitLogical(const Logical &logical) {
   }
   return evaluate(logical.right);
 }
+
 void Interpreter::visitClassStmt(const CLASS &stmt) {
   LoxClass *superClass = nullptr;
   if (stmt.superClass != nullptr) {
@@ -85,8 +92,11 @@ void Interpreter::visitClassStmt(const CLASS &stmt) {
   }
   environment->assign(stmt.token, klass);
 }
+
 std::any Interpreter::evaluate(Expr *expr) { return expr->accept(*this); }
+
 void Interpreter::resolve(const Expr *expr, int depth) { locals[expr] = depth; }
+
 void Interpreter::visitIfStmt(const If &stmt) {
   if (isTruly(evaluate(stmt.condition))) {
     execute(stmt.elseBranch);
@@ -94,6 +104,7 @@ void Interpreter::visitIfStmt(const If &stmt) {
     execute(stmt.elseBranch);
   }
 }
+
 std::any Interpreter::visitSuper(const Super &expr) {
   int distance = locals.at(&expr);
   LoxClass *superClass =
@@ -111,11 +122,154 @@ std::any Interpreter::visitSuper(const Super &expr) {
 
   return method->bind(instance);
 }
+
+std::any Interpreter::visitLiteral(const Literals &expr) {
+  if (expr.value == "") {
+    return expr.val;
+  }
+  if (expr.value == "true") {
+    return true;
+  }
+  if (expr.value == "false") {
+    return false;
+  }
+  return expr.value;
+}
+
+std::any Interpreter::visitGrouping(const Grouping &expr) {
+  return evaluate(expr.expression);
+}
+
+void Interpreter::visitExprStmt(const ExprStmt &stmt) { evaluate(stmt.expr); }
+
+void Interpreter::visitPrintStmt(const PrintStmt &stmt) {
+  std::any value = evaluate(stmt.expr);
+  std::cout << stringify(value) << '\n';
+}
+
+void Interpreter::visitVarStmt(const VarStmt &stmt) {
+  std::any val = nullptr;
+  if (stmt.initalizer != nullptr) {
+    val = evaluate(stmt.initalizer);
+  }
+  environment->define(stmt.name.getLexeme(), val);
+}
+
+std::any Interpreter::visitAssign(const Assign &expr) {
+  std::any value = evaluate(expr.value);
+  if (locals.contains(&expr)) {
+    environment->assignAt(locals[&expr], expr.name, value);
+  } else {
+    environment->assign(expr.name, value);
+  }
+  return value;
+}
+
+void Interpreter::visitBlockStmt(const Block &stmt) {
+  executeBlock(stmt.state, new Environment(environment));
+}
+
+std::any Interpreter::visitCall(const Call &expr) {
+  std::any callee = evaluate(expr.callee);
+  std::vector<std::any> args;
+  for (auto &arg : expr.arguments) {
+    args.emplace_back(evaluate(std::move(arg)));
+  }
+
+  if (callee.type() != typeid(LoxCallable *)) {
+    throw RuntimeError(expr.paren, "can only call functions and classes.");
+  }
+  LoxCallable *function = std::any_cast<LoxCallable *>(callee);
+  if (args.size() != function->arity()) {
+    throw RuntimeError(expr.paren, "Expected " +
+                                       std::to_string(function->arity()) +
+                                       " arguments but got " +
+                                       std::to_string(args.size()) + ".");
+  }
+
+  return function->call(*this, args);
+}
+
+std::any Interpreter::evaluate(const std::unique_ptr<Expr> &expr) {
+  return expr->accept(*this);
+}
+
+std::any Interpreter::visitVariable(const Variable &variable) {
+  return lookupVariable(variable.name, &variable);
+}
+
+std::any Interpreter::visitUnary(const Unary &expr) {
+  std::any right = evaluate(expr.right);
+  switch (expr.opr.getType()) {
+  case TokenType::MINUS:
+    checkNumberOperands(expr.opr, right);
+    return -1 * std::any_cast<double>(right);
+  case TokenType::BANG:
+    return !isTruly(right);
+  default:
+    break;
+  }
+  return std::any{};
+}
+
+std::any Interpreter::visitBinary(const Binary &expr) {
+  std::any left = evaluate(expr.left);
+  std::any right = evaluate(expr.right);
+
+  switch (expr.opr.getType()) {
+  case TokenType::MINUS:
+    checkNumberOperands(expr.opr, left, right);
+    return std::any_cast<double>(left) - std::any_cast<double>(right);
+
+  case TokenType::PLUS:
+    if ((typeid(double) == left.type()) && (typeid(double) == right.type())) {
+      return std::any_cast<double>(left) + std::any_cast<double>(right);
+    }
+
+    if ((typeid(std::string) == left.type()) &&
+        (typeid(std::string) == right.type())) {
+      std::cout << "it's a string" << std::endl;
+      return std::any_cast<std::string>(left) +
+             std::any_cast<std::string>(right);
+    }
+    throw RuntimeError(expr.opr,
+                       "Operands must be two numbers or two strings.");
+
+  case TokenType::SLASH:
+    checkNumberOperands(expr.opr, left, right);
+    return std::any_cast<double>(left) / std::any_cast<double>(right);
+
+  case TokenType::STAR:
+    checkNumberOperands(expr.opr, left, right);
+    return std::any_cast<double>(left) * std::any_cast<double>(right);
+  case TokenType::GREATER:
+    checkNumberOperands(expr.opr, left, right);
+    return std::any_cast<double>(left) > std::any_cast<double>(right);
+  case TokenType::GREATER_EQUAL:
+    checkNumberOperands(expr.opr, left, right);
+    return std::any_cast<double>(left) >= std::any_cast<double>(right);
+  case TokenType::LESS:
+    checkNumberOperands(expr.opr, left, right);
+    return std::any_cast<double>(left) < std::any_cast<double>(right);
+  case TokenType::LESS_EQUAL:
+    checkNumberOperands(expr.opr, left, right);
+    return std::any_cast<double>(left) <= std::any_cast<double>(right);
+  case TokenType::BANG_EQUAL:
+    return !isEqual(left, right);
+  case TokenType::EQUAL_EQUAL:
+    return isEqual(left, right);
+  default:
+    break;
+  }
+  return std::any{};
+}
+
 void Interpreter::visitWhileStmt(const While &stmt) {
   while (isTruly(evaluate(stmt.condition))) {
     execute(stmt.body);
   }
 }
+
 void Interpreter::visitFunctionStmt(const Function &stmt) {
 
   LoxFunction *function = new LoxFunction(&stmt, environment, false);
