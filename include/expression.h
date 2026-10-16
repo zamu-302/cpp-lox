@@ -88,12 +88,17 @@ public:
 };
 class Literals : public Expr {
 public:
-  double val;
+  double val = 0;
   std::string value = "";
-  bool boolean;
-  Literals(bool boolean) : boolean{boolean} {}
-  Literals(std::string value) : value(value) {}
-  Literals(double val) : val{val} {}
+  bool boolean = false;
+  enum class Kind { Nil, Bool, Number, String };
+  Kind kind = Kind::Nil;
+
+  Literals() = default;
+  Literals(bool boolean) : kind{Kind::Bool}, boolean{boolean} {}
+  Literals(std::string value) : kind{Kind::String}, value(value) {}
+  Literals(double val) : kind{Kind::Number}, val{val} {}
+  Literals(const char *) = delete;
 
   std::any accept(Visitor &visitor) override {
     return visitor.visitLiteral(*this);
@@ -167,10 +172,19 @@ public:
     return result;
   }
   std::any visitLiteral(const Literals &expr) override {
-    if (expr.value.empty()) {
+    switch (expr.kind) {
+    case Literals::Kind::Nil:
       result = "nil";
-    } else {
+      break;
+    case Literals::Kind::Bool:
+      result = expr.boolean ? "true" : "false";
+      break;
+    case Literals::Kind::Number:
+      result = std::to_string(expr.val);
+      break;
+    case Literals::Kind::String:
       result = expr.value;
+      break;
     }
     return result;
   }
