@@ -14,7 +14,7 @@ class Lox {
 public:
   Lox() {}
   friend Scanner;
-  void trials();
+  void runFile(const std::string &path);
   ErrorReporter reporter;
   void runPrompt();
   void run(const std::string &line);

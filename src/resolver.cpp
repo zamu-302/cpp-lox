@@ -51,9 +51,12 @@ void Resolver::declare(Token name) {
   scope[name.getLexeme()] = false;
 }
 std::any Resolver::visitVariable(const Variable &expr) {
-  if (!scopes.empty() && scopes.back()[expr.name.getLexeme()] == false) {
-    reporter.error(expr.name,
-                   "can't read local variable in its own initalizer.");
+  if (!scopes.empty()) {
+    auto it = scopes.back().find(expr.name.getLexeme());
+    if (it != scopes.back().end() && it->second == false) {
+      reporter.error(expr.name,
+                     "can't read local variable in its own initalizer.");
+    }
   }
   resolveLocal(&expr, expr.name);
   return std::any{};

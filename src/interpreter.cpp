@@ -99,7 +99,7 @@ void Interpreter::resolve(const Expr *expr, int depth) { locals[expr] = depth; }
 
 void Interpreter::visitIfStmt(const If &stmt) {
   if (isTruly(evaluate(stmt.condition))) {
-    execute(stmt.elseBranch);
+    execute(stmt.thenBranch);
   } else if (stmt.elseBranch != nullptr) {
     execute(stmt.elseBranch);
   }
@@ -124,16 +124,17 @@ std::any Interpreter::visitSuper(const Super &expr) {
 }
 
 std::any Interpreter::visitLiteral(const Literals &expr) {
-  if (expr.value == "") {
+  switch (expr.kind) {
+  case Literals::Kind::Bool:
+    return expr.boolean;
+  case Literals::Kind::Number:
     return expr.val;
+  case Literals::Kind::Nil:
+    break;
+  case Literals::Kind::String:
+    return expr.value;
   }
-  if (expr.value == "true") {
-    return true;
-  }
-  if (expr.value == "false") {
-    return false;
-  }
-  return expr.value;
+  return std::any{};
 }
 
 std::any Interpreter::visitGrouping(const Grouping &expr) {
@@ -148,7 +149,7 @@ void Interpreter::visitPrintStmt(const PrintStmt &stmt) {
 }
 
 void Interpreter::visitVarStmt(const VarStmt &stmt) {
-  std::any val = nullptr;
+  std::any val;
   if (stmt.initalizer != nullptr) {
     val = evaluate(stmt.initalizer);
   }

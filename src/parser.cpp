@@ -70,10 +70,13 @@ std::unique_ptr<Expr> Parser::finishCall(std::unique_ptr<Expr> callee) {
 }
 std::unique_ptr<Expr> Parser::primary() {
   if (match({TokenType::FALSE})) {
-    return std::make_unique<Literals>("false");
+    return std::make_unique<Literals>(false);
   }
   if (match({TokenType::TRUE})) {
-    return std::make_unique<Literals>("true");
+    return std::make_unique<Literals>(true);
+  }
+  if (match({TokenType::NIL})) {
+    return std::make_unique<Literals>();
   }
   if (match({TokenType::NUMBER, TokenType::STRING})) {
     auto val = previous().getLit();
@@ -364,7 +367,7 @@ std::unique_ptr<Stmt> Parser::forStatement() {
     body = std::make_unique<Block>(std::move(stmts));
   }
   if (condition == nullptr) {
-    condition = std::make_unique<Literals>("true");
+    condition = std::make_unique<Literals>(true);
   }
   body = std::make_unique<While>(std::move(condition), std::move(body));
 

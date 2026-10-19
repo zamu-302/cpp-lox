@@ -1,0 +1,3 @@
+/home/sam/math/C++/summer/projects/cpp-lox/build/CMakeFiles/cpp-lox.dir
+/home/sam/math/C++/summer/projects/cpp-lox/build/CMakeFiles/edit_cache.dir
+/home/sam/math/C++/summer/projects/cpp-lox/build/CMakeFiles/rebuild_cache.dir
