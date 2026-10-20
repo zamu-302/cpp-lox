@@ -282,7 +282,7 @@ void Interpreter::interpret(std::vector<std::unique_ptr<Stmt>> statements) {
     for (const auto &statement : statements) {
       execute(statement);
     }
-  } catch (RuntimeError error) {
+  } catch (const RuntimeError &error) {
     throw RuntimeError::runtime_error(error);
   }
 }
@@ -330,10 +330,14 @@ void Interpreter::executeBlock(
   Environment *prev = this->environment;
 
   this->environment = env;
+  struct Restore {
+    Interpreter &self;
+    Environment *prev;
+    ~Restore() { self.environment = prev; }
+  } restore{*this, prev};
   for (const auto &s : statement) {
     execute(s);
   }
-  this->environment = prev;
 }
 
 void Interpreter::checkNumberOperands(Token token, std::any left,

@@ -2,387 +2,292 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Lox Playground</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>lox.play</title>
 <style>
   :root {
-    --bg:        #0D1520;
-    --surface:   #131F30;
-    --panel:     #192538;
-    --border:    #243448;
-    --accent:    #F0A500;
-    --accent-dim:#7A5200;
-    --teal:      #3DBFA8;
-    --red:       #E05C5C;
-    --text:      #D9E4F0;
-    --muted:     #5C7A99;
-    --mono:      'JetBrains Mono', monospace;
-    --sans:      'Inter', sans-serif;
+    --bg:    #000000;
+    --panel: #0b0b0b;
+    --line:  #232323;
+    --text:  #ececec;
+    --dim:   #777777;
+    --red:   #ff2d2d;
+    --mono:  ui-monospace, "JetBrains Mono", "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
   }
-  @media (prefers-color-scheme: light) {
-    :root {
-      --bg: #F0F4FA; --surface: #FFFFFF; --panel: #E8EEF8;
-      --border: #C8D6E8; --text: #1A2A3A; --muted: #6A849A;
-    }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    background: var(--bg); color: var(--text);
+    font: 13px/1.6 var(--mono);
+    -webkit-font-smoothing: antialiased;
   }
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  html, body { height: 100%; background: var(--bg); color: var(--text); font-family: var(--sans); font-size: 14px; line-height: 1.6; }
+  ::selection { background: var(--red); color: #000; }
+  button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+  :focus-visible { outline: 1px solid var(--red); outline-offset: 2px; }
 
-  .shell { display: grid; grid-template-rows: 48px 1fr; grid-template-columns: 280px 1fr 340px; height: 100vh; overflow: hidden; }
+  /* ── layout ── */
+  .app { display: grid; grid-template-rows: auto 1fr; height: 100%; max-width: 1400px; margin: 0 auto; }
+  header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 20px; border-bottom: 1px solid var(--line);
+  }
+  .logo { font-weight: 700; letter-spacing: .02em; }
+  .logo b { color: var(--red); }
+  .status { color: var(--dim); font-size: 12px; display: flex; align-items: center; gap: 8px; }
+  .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--dim); }
+  .dot.ok { background: var(--text); }
+  .dot.err { background: var(--red); }
 
-  .topbar { grid-column: 1/-1; display: flex; align-items: center; gap: 12px; padding: 0 20px; background: var(--surface); border-bottom: 1px solid var(--border); }
-  .topbar-logo { font-family: var(--mono); font-size: 15px; font-weight: 600; color: var(--accent); letter-spacing: -0.02em; }
-  .topbar-logo span { color: var(--muted); font-weight: 400; }
-  .topbar-tag { font-size: 11px; padding: 2px 8px; border-radius: 4px; background: var(--panel); color: var(--muted); border: 1px solid var(--border); }
-  .topbar-right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
-  .status-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--muted); display: inline-block; margin-right: 4px; transition: background 0.3s; }
-  .status-dot.connected { background: var(--teal); }
-  .status-dot.error { background: var(--red); }
-  #statusLabel { font-size: 11px; color: var(--muted); }
+  .grid { display: grid; grid-template-columns: minmax(0, 1fr) 300px; min-height: 0; }
+  .main { display: grid; grid-template-rows: minmax(0, 3fr) auto minmax(0, 2fr); min-height: 0; border-right: 1px solid var(--line); }
 
-  .sidebar { grid-row: 2; background: var(--surface); border-right: 1px solid var(--border); overflow-y: auto; padding: 16px 0; }
-  .sidebar::-webkit-scrollbar { width: 4px; }
-  .sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+  /* ── editor ── */
+  .editor { display: grid; grid-template-columns: 44px minmax(0, 1fr); min-height: 0; background: var(--panel); }
+  .nums, textarea {
+    font: inherit; line-height: 1.6; padding: 16px 0; white-space: pre;
+  }
+  .nums { text-align: right; padding-right: 12px; color: #3a3a3a; overflow: hidden; user-select: none; }
+  textarea {
+    background: transparent; color: var(--text); border: 0; resize: none; outline: 0;
+    padding-left: 4px; padding-right: 16px; overflow: auto; caret-color: var(--red); tab-size: 4;
+  }
 
-  .cs-heading { font-size: 10px; font-weight: 600; color: var(--accent); letter-spacing: 0.08em; text-transform: uppercase; padding: 12px 16px 6px; border-top: 1px solid var(--border); margin-top: 4px; }
-  .cs-heading:first-child { border-top: none; margin-top: 0; padding-top: 4px; }
-  .cs-section { padding: 4px 16px; }
-  .cs-item { padding: 5px 0; cursor: pointer; }
-  .cs-item:hover .cs-code { color: var(--accent); }
-  .cs-code { font-family: var(--mono); font-size: 12px; color: var(--teal); line-height: 1.5; white-space: pre; transition: color 0.1s; }
-  .cs-desc { font-size: 11px; color: var(--muted); margin-top: 1px; }
+  /* ── run bar ── */
+  .bar {
+    display: flex; align-items: center; gap: 16px; padding: 10px 20px;
+    border-top: 1px solid var(--line); border-bottom: 1px solid var(--line);
+  }
+  .run {
+    background: var(--red); color: #000; font-weight: 700; padding: 5px 18px;
+  }
+  .run:hover:not(:disabled) { background: #fff; }
+  .run:disabled { opacity: .4; cursor: default; }
+  .link { color: var(--dim); }
+  .link:hover { color: var(--text); }
+  .hint { margin-left: auto; color: var(--dim); font-size: 12px; }
+  kbd { border: 1px solid var(--line); padding: 0 5px; font: inherit; }
 
-  .editor-pane { grid-row: 2; display: flex; flex-direction: column; background: var(--bg); overflow: hidden; }
-  .pane-header { display: flex; align-items: center; gap: 10px; padding: 0 16px; height: 38px; background: var(--surface); border-bottom: 1px solid var(--border); font-size: 12px; color: var(--muted); flex-shrink: 0; }
-  .pane-header strong { color: var(--text); font-weight: 500; }
-  .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--border); }
-  .dot.active { background: var(--accent); }
+  /* ── output ── */
+  .out { display: flex; flex-direction: column; min-height: 0; }
+  .out-head { padding: 8px 20px; color: var(--dim); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; display: flex; justify-content: space-between; }
+  #output { flex: 1; overflow: auto; padding: 0 20px 16px; white-space: pre-wrap; word-break: break-word; }
+  .o-err { color: var(--red); }
+  .o-sys { color: var(--dim); }
+  .o-line { display: block; }
 
-  .editor-wrap { flex: 1; display: flex; overflow: hidden; position: relative; }
-  .line-nums { font-family: var(--mono); font-size: 13px; line-height: 1.7; color: var(--muted); text-align: right; padding: 16px 10px 16px 16px; user-select: none; min-width: 48px; background: var(--bg); overflow: hidden; }
-  #editor { flex: 1; font-family: var(--mono); font-size: 13px; line-height: 1.7; color: var(--text); background: transparent; border: none; outline: none; resize: none; padding: 16px 16px 16px 0; tab-size: 4; caret-color: var(--accent); white-space: pre; overflow: auto; }
-  #editor::selection { background: rgba(240,165,0,0.2); }
+  /* ── side ── */
+  aside { overflow: auto; min-height: 0; padding: 16px 20px 32px; }
+  h2 {
+    font-size: 11px; font-weight: 400; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--dim); margin: 22px 0 8px;
+  }
+  h2:first-child { margin-top: 0; }
+  .ex { display: flex; flex-wrap: wrap; gap: 4px 14px; }
+  .ex button { color: var(--text); padding: 1px 0; border-bottom: 1px solid transparent; }
+  .ex button:hover { color: var(--red); border-bottom-color: var(--red); }
+  .cs { list-style: none; }
+  .cs li button {
+    display: grid; grid-template-columns: 1fr auto; gap: 12px; width: 100%; text-align: left;
+    padding: 4px 0; border-bottom: 1px solid var(--line);
+  }
+  .cs li button:hover .c { color: #fff; }
+  .cs li button:hover .d { color: var(--red); }
+  .c { color: var(--text); white-space: pre; overflow: hidden; text-overflow: ellipsis; }
+  .c i { color: var(--red); font-style: normal; }
+  .d { color: var(--dim); font-size: 12px; text-align: right; }
 
-  .run-bar { display: flex; align-items: center; gap: 8px; padding: 8px 16px; background: var(--surface); border-top: 1px solid var(--border); flex-shrink: 0; }
-  .btn-run { display: flex; align-items: center; gap: 6px; padding: 7px 18px; background: var(--accent); color: #0D1520; border: none; border-radius: 6px; font-family: var(--sans); font-size: 13px; font-weight: 600; cursor: pointer; transition: opacity 0.15s, transform 0.1s; }
-  .btn-run:hover { opacity: 0.88; }
-  .btn-run:active { transform: scale(0.97); }
-  .btn-run:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
-  .btn-clear { padding: 7px 14px; background: transparent; color: var(--muted); border: 1px solid var(--border); border-radius: 6px; font-family: var(--sans); font-size: 13px; cursor: pointer; transition: color 0.15s, border-color 0.15s; }
-  .btn-clear:hover { color: var(--text); border-color: var(--muted); }
-  .shortcut-hint { margin-left: auto; font-size: 11px; color: var(--muted); }
-  kbd { font-family: var(--mono); font-size: 10px; padding: 1px 5px; background: var(--panel); border: 1px solid var(--border); border-radius: 3px; color: var(--text); }
-
-  .output-pane { grid-row: 2; display: flex; flex-direction: column; background: var(--surface); border-left: 1px solid var(--border); overflow: hidden; }
-  #output { flex: 1; font-family: var(--mono); font-size: 13px; line-height: 1.7; padding: 16px; overflow-y: auto; white-space: pre-wrap; word-break: break-word; }
-  #output::-webkit-scrollbar { width: 4px; }
-  #output::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
-  .out-line   { display: block; color: var(--text); }
-  .out-error  { display: block; color: var(--red); }
-  .out-system { display: block; color: var(--muted); font-style: italic; }
-
-  .spinner { display: inline-block; width: 12px; height: 12px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite; vertical-align: middle; margin-right: 6px; }
-  @keyframes spin { to { transform: rotate(360deg); } }
-
-  .examples { display: flex; flex-wrap: wrap; gap: 6px; padding: 8px 16px; background: var(--panel); border-top: 1px solid var(--border); }
-  .example-chip { font-family: var(--mono); font-size: 11px; padding: 3px 10px; border-radius: 12px; background: var(--surface); border: 1px solid var(--border); color: var(--muted); cursor: pointer; transition: color 0.1s, border-color 0.1s; white-space: nowrap; }
-  .example-chip:hover { color: var(--accent); border-color: var(--accent-dim); }
-
-  @media (max-width: 768px) {
-    .shell { grid-template-columns: 1fr; grid-template-rows: 48px auto 1fr auto; height: auto; min-height: 100vh; }
-    .sidebar { grid-row: 2; border-right: none; border-bottom: 1px solid var(--border); max-height: 240px; }
-    .editor-pane { grid-row: 3; min-height: 300px; }
-    .output-pane { grid-row: 4; border-left: none; border-top: 1px solid var(--border); min-height: 200px; }
+  @media (max-width: 860px) {
+    html, body { height: auto; }
+    .app { height: auto; }
+    .grid { grid-template-columns: 1fr; }
+    .main { border-right: 0; grid-template-rows: 340px auto 240px; }
+    aside { border-top: 1px solid var(--line); }
+    .hint { display: none; }
   }
 </style>
 </head>
 <body>
-<div class="shell">
-
-  <header class="topbar">
-    <div class="topbar-logo">lox<span>.</span>play</div>
-    <span class="topbar-tag">tree-walk interpreter</span>
-    <div class="topbar-right">
-      <span class="topbar-tag">
-        <span class="status-dot" id="statusDot"></span>
-        <span id="statusLabel">connecting…</span>
-      </span>
-      <span class="topbar-tag">C++ · Crafting Interpreters</span>
-    </div>
+<div class="app">
+  <header>
+    <div class="logo">lox<b>.</b>play</div>
+    <div class="status"><span class="dot" id="dot"></span><span id="status">connecting</span></div>
   </header>
 
-  <!-- Cheat sheet -->
-  <aside class="sidebar">
-    <div class="cs-heading">Variables</div>
-    <div class="cs-section">
-      <div class="cs-item" onclick="insert('var x = 10;\nvar name = &quot;Lox&quot;;')">
-        <div class="cs-code">var x = 10;</div><div class="cs-desc">declare &amp; assign</div>
+  <div class="grid">
+    <div class="main">
+      <div class="editor">
+        <div class="nums" id="nums">1</div>
+        <textarea id="editor" spellcheck="false" autocorrect="off" autocapitalize="off" aria-label="Lox source code"></textarea>
       </div>
-      <div class="cs-item" onclick="insert('var x;\nprint x; // nil')">
-        <div class="cs-code">var x; // nil</div><div class="cs-desc">uninitialized → nil</div>
+
+      <div class="bar">
+        <button class="run" id="run">run</button>
+        <button class="link" id="clear">clear</button>
+        <span class="hint"><kbd>ctrl</kbd> + <kbd>enter</kbd></span>
+      </div>
+
+      <div class="out">
+        <div class="out-head"><span>output</span><span id="meta"></span></div>
+        <div id="output"><span class="o-sys">press run</span></div>
       </div>
     </div>
 
-    <div class="cs-heading">Types</div>
-    <div class="cs-section">
-      <div class="cs-item" onclick="insert('print 42;\nprint 3.14;\nprint &quot;hello&quot;;\nprint true;\nprint nil;')">
-        <div class="cs-code">42  3.14  "hi"  true  nil</div><div class="cs-desc">number, string, bool, nil</div>
-      </div>
-    </div>
+    <aside>
+      <h2>examples</h2>
+      <div class="ex" id="examples"></div>
 
-    <div class="cs-heading">Operators</div>
-    <div class="cs-section">
-      <div class="cs-item" onclick="insert('print 1 + 2;\nprint 10 - 4;\nprint 3 * 5;\nprint 10 / 4;')">
-        <div class="cs-code">+  -  *  /</div><div class="cs-desc">arithmetic</div>
-      </div>
-      <div class="cs-item" onclick="insert('print 5 == 5;\nprint 5 != 3;\nprint 3 &lt; 5;\nprint 5 &gt;= 5;')">
-        <div class="cs-code">==  !=  &lt;  &gt;  &lt;=  &gt;=</div><div class="cs-desc">comparison</div>
-      </div>
-      <div class="cs-item" onclick="insert('print true and false;\nprint true or false;\nprint !true;')">
-        <div class="cs-code">and  or  !</div><div class="cs-desc">logical</div>
-      </div>
-      <div class="cs-item" onclick="insert('print &quot;hello &quot; + &quot;world&quot;;')">
-        <div class="cs-code">"a" + "b"</div><div class="cs-desc">string concat</div>
-      </div>
-    </div>
-
-    <div class="cs-heading">Control Flow</div>
-    <div class="cs-section">
-      <div class="cs-item" onclick="insert('if (x &gt; 0) {\n  print &quot;positive&quot;;\n} else {\n  print &quot;negative&quot;;\n}')">
-        <div class="cs-code">if (cond) { } else { }</div><div class="cs-desc">conditional</div>
-      </div>
-      <div class="cs-item" onclick="insert('var i = 0;\nwhile (i &lt; 5) {\n  print i;\n  i = i + 1;\n}')">
-        <div class="cs-code">while (cond) { }</div><div class="cs-desc">while loop</div>
-      </div>
-      <div class="cs-item" onclick="insert('for (var i = 0; i &lt; 5; i = i + 1) {\n  print i;\n}')">
-        <div class="cs-code">for (init; cond; incr) { }</div><div class="cs-desc">for loop</div>
-      </div>
-    </div>
-
-    <div class="cs-heading">Functions</div>
-    <div class="cs-section">
-      <div class="cs-item" onclick="insert('fun greet(name) {\n  print &quot;Hello, &quot; + name + &quot;!&quot;;\n}\ngreet(&quot;Lox&quot;);')">
-        <div class="cs-code">fun name(params) { }</div><div class="cs-desc">declare function</div>
-      </div>
-      <div class="cs-item" onclick="insert('fun add(a, b) {\n  return a + b;\n}\nprint add(3, 4);')">
-        <div class="cs-code">return value;</div><div class="cs-desc">return a value</div>
-      </div>
-      <div class="cs-item" onclick="insert('fun makeCounter() {\n  var count = 0;\n  fun inc() {\n    count = count + 1;\n    return count;\n  }\n  return inc;\n}\nvar c = makeCounter();\nprint c();\nprint c();')">
-        <div class="cs-code">fun outer() { fun inner() {} }</div><div class="cs-desc">closure</div>
-      </div>
-    </div>
-
-    <div class="cs-heading">Classes</div>
-    <div class="cs-section">
-      <div class="cs-item" onclick="insert('class Animal {\n  init(name) {\n    this.name = name;\n  }\n  speak() {\n    print this.name + &quot; makes a sound.&quot;;\n  }\n}\nvar a = Animal(&quot;Cat&quot;);\na.speak();')">
-        <div class="cs-code">class Name { method() { } }</div><div class="cs-desc">define a class</div>
-      </div>
-      <div class="cs-item" onclick="insert('class Dog &lt; Animal {\n  speak() {\n    print this.name + &quot; barks!&quot;;\n  }\n}\nvar d = Dog(&quot;Rex&quot;);\nd.speak();')">
-        <div class="cs-code">class Dog &lt; Animal { }</div><div class="cs-desc">inheritance</div>
-      </div>
-      <div class="cs-item" onclick="insert('class Shape {\n  area() { return 0; }\n}\nclass Circle &lt; Shape {\n  init(r) { this.r = r; }\n  area() {\n    return 3.14159 * this.r * this.r;\n  }\n}\nvar c = Circle(5);\nprint c.area();')">
-        <div class="cs-code">super.method()</div><div class="cs-desc">call parent method</div>
-      </div>
-    </div>
-
-    <div class="cs-heading">Scoping</div>
-    <div class="cs-section">
-      <div class="cs-item" onclick="insert('var x = &quot;global&quot;;\n{\n  var x = &quot;block&quot;;\n  print x; // block\n}\nprint x;   // global')">
-        <div class="cs-code">{ var x = ...; }</div><div class="cs-desc">block scope shadows outer</div>
-      </div>
-    </div>
-  </aside>
-
-  <!-- Editor -->
-  <main class="editor-pane">
-    <div class="pane-header">
-      <div class="dot active"></div>
-      <strong>main.lox</strong>
-    </div>
-    <div class="editor-wrap">
-      <div class="line-nums" id="lineNums">1</div>
-      <textarea id="editor" spellcheck="false" autocorrect="off" autocapitalize="off">// Welcome to the Lox Playground!
-// Click any item in the cheat sheet, or write your own code.
-
-fun fib(n) {
-  if (n <= 1) return n;
-  return fib(n - 1) + fib(n - 2);
-}
-
-for (var i = 0; i < 10; i = i + 1) {
-  print fib(i);
-}
-</textarea>
-    </div>
-    <div class="run-bar">
-      <button class="btn-run" id="runBtn" onclick="runCode()">▶ Run</button>
-      <button class="btn-clear" onclick="clearOutput()">Clear</button>
-      <span class="shortcut-hint"><kbd>Ctrl</kbd> + <kbd>Enter</kbd> to run</span>
-    </div>
-    <div class="examples">
-      <span class="example-chip" onclick="loadExample('hello')">hello world</span>
-      <span class="example-chip" onclick="loadExample('fib')">fibonacci</span>
-      <span class="example-chip" onclick="loadExample('closure')">closure</span>
-      <span class="example-chip" onclick="loadExample('class')">class</span>
-      <span class="example-chip" onclick="loadExample('inherit')">inheritance</span>
-      <span class="example-chip" onclick="loadExample('scope')">scoping</span>
-      <span class="example-chip" onclick="loadExample('counter')">counter</span>
-    </div>
-  </main>
-
-  <!-- Output -->
-  <aside class="output-pane">
-    <div class="pane-header">
-      <div class="dot" id="outputDot"></div>
-      <strong>output</strong>
-    </div>
-    <div id="output">
-      <span class="out-system">// Waiting for server…</span>
-    </div>
-  </aside>
-
+      <h2>cheat sheet</h2>
+      <ul class="cs" id="cheat"></ul>
+    </aside>
+  </div>
 </div>
 
 <script>
-// ── Config ── change port if needed
-const SERVER = 'http://localhost:3000';
+// Same origin when served by server.py, otherwise fall back to localhost:3000
+const SERVER = location.protocol.startsWith('http') ? location.origin : 'http://localhost:3000';
 
-const editor    = document.getElementById('editor');
-const output    = document.getElementById('output');
-const runBtn    = document.getElementById('runBtn');
-const lineNums  = document.getElementById('lineNums');
-const outputDot = document.getElementById('outputDot');
-const statusDot = document.getElementById('statusDot');
-const statusLbl = document.getElementById('statusLabel');
+const $ = id => document.getElementById(id);
+const editor = $('editor'), output = $('output'), nums = $('nums'),
+      runBtn = $('run'), dot = $('dot'), statusEl = $('status'), meta = $('meta');
 
-// ── Line numbers ──
-function updateLineNums() {
-  const lines = editor.value.split('\n').length;
-  lineNums.textContent = Array.from({length: lines}, (_, i) => i + 1).join('\n');
+/* ───────── examples (replace the editor) ───────── */
+const examples = {
+  'hello':     'print "Hello, Lox!";',
+  'fibonacci': 'fun fib(n) {\n  if (n < 2) return n;\n  return fib(n - 1) + fib(n - 2);\n}\n\nfor (var i = 0; i < 10; i = i + 1) {\n  print fib(i);\n}',
+  'closure':   'fun makeCounter() {\n  var count = 0;\n  fun inc() {\n    count = count + 1;\n    return count;\n  }\n  return inc;\n}\n\nvar c = makeCounter();\nprint c();\nprint c();\nprint c();',
+  'adders':    'fun makeAdder(n) {\n  fun add(x) { return n + x; }\n  return add;\n}\n\nvar add5 = makeAdder(5);\nvar add10 = makeAdder(10);\nprint add5(3);\nprint add10(3);\nprint add5(add10(2));',
+  'scope':     'var x = "global";\n{\n  var x = "block";\n  print x;\n}\nprint x;',
+  'class':     'class Dog {\n  init(name) { this.name = name; }\n  bark() { print this.name + " says woof"; }\n}\n\nvar d = Dog("Rex");\nd.bark();',
+  'inherit':   'class Animal {\n  init(name) { this.name = name; }\n  speak() { print this.name + " makes a sound"; }\n}\n\nclass Dog < Animal {\n  speak() {\n    super.speak();\n    print this.name + " barks";\n  }\n}\n\nDog("Rex").speak();',
+};
+
+/* ───────── cheat sheet (insert at cursor) ───────── */
+const cheat = [
+  ['var x = 10;',               'variable',      'var x = 10;'],
+  ['42  3.14  "hi"  true  nil', 'types',         'print 42;\nprint "hi";\nprint true;\nprint nil;'],
+  ['+  -  *  /',                'arithmetic',    'print 1 + 2 * 3;'],
+  ['==  !=  <  <=  >  >=',      'compare',       'print 3 <= 5;'],
+  ['and  or  !',                'logic',         'print true and !false;'],
+  ['"a" + "b"',                 'concat',        'print "a" + "b";'],
+  ['print expr;',               'output',        'print "hello";'],
+  ['// comment',                'comment',       '// comment'],
+  ['{ ... }',                   'block scope',   '{\n  var x = 1;\n  print x;\n}'],
+  ['if (c) { } else { }',       'branch',        'if (x > 0) {\n  print "pos";\n} else {\n  print "neg";\n}'],
+  ['while (c) { }',             'loop',          'var i = 0;\nwhile (i < 3) {\n  print i;\n  i = i + 1;\n}'],
+  ['for (init; c; step) { }',   'for loop',      'for (var i = 0; i < 3; i = i + 1) {\n  print i;\n}'],
+  ['fun f(a, b) { }',           'function',      'fun add(a, b) {\n  return a + b;\n}\nprint add(1, 2);'],
+  ['return value;',             'return',        'return x;'],
+  ['class C { init() { } }',    'class',         'class C {\n  init(v) { this.v = v; }\n  get() { return this.v; }\n}'],
+  ['class B < A { }',           'inherit',       'class B < A {\n}'],
+  ['this.field',                'field',         'this.field = 1;'],
+  ['super.method()',            'parent call',   'super.method();'],
+  ['clock()',                   'native fn',     'print clock();'],
+];
+const KW = /\b(var|fun|class|return|if|else|while|for|print|this|super|and|or|nil|true|false)\b/g;
+const esc = s => s.replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+
+$('examples').innerHTML = Object.keys(examples)
+  .map(k => `<button data-ex="${k}">${k}</button>`).join('');
+$('cheat').innerHTML = cheat
+  .map(([code, desc], i) =>
+    `<li><button data-cs="${i}"><span class="c">${esc(code).replace(KW, '<i>$1</i>')}</span><span class="d">${desc}</span></button></li>`)
+  .join('');
+
+$('examples').addEventListener('click', e => {
+  const k = e.target.dataset.ex; if (!k) return;
+  editor.value = examples[k]; refreshNums(); editor.focus();
+});
+$('cheat').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  insertAtCursor(cheat[b.dataset.cs][2]);
+});
+function insertAtCursor(text) {
+  const s = editor.selectionStart, t = editor.selectionEnd, v = editor.value;
+  const pre = s > 0 && v[s - 1] !== '\n' ? '\n' : '';
+  editor.value = v.slice(0, s) + pre + text + v.slice(t);
+  editor.selectionStart = editor.selectionEnd = s + pre.length + text.length;
+  refreshNums(); editor.focus();
 }
-editor.addEventListener('input', updateLineNums);
-editor.addEventListener('scroll', () => { lineNums.scrollTop = editor.scrollTop; });
-updateLineNums();
 
-// ── Tab key + Ctrl+Enter ──
+/* ───────── editor niceties ───────── */
+function refreshNums() {
+  const n = editor.value.split('\n').length;
+  nums.textContent = Array.from({length: n}, (_, i) => i + 1).join('\n');
+  nums.scrollTop = editor.scrollTop;
+}
+editor.addEventListener('input', refreshNums);
+editor.addEventListener('scroll', () => { nums.scrollTop = editor.scrollTop; });
 editor.addEventListener('keydown', e => {
   if (e.key === 'Tab') {
     e.preventDefault();
     const s = editor.selectionStart;
-    editor.value = editor.value.substring(0, s) + '    ' + editor.value.substring(editor.selectionEnd);
-    editor.selectionStart = editor.selectionEnd = s + 4;
-    updateLineNums();
-  }
-  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
-    e.preventDefault();
-    runCode();
+    editor.setRangeText('  ', s, editor.selectionEnd, 'end');
+    refreshNums();
+  } else if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+    e.preventDefault(); run();
   }
 });
+try { editor.value = localStorage.getItem('lox.code') || examples['fibonacci']; }
+catch { editor.value = examples['fibonacci']; }
+refreshNums();
 
-// ── Insert snippet ──
-function insert(code) {
-  editor.value = code.replace(/&quot;/g, '"').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
-  editor.focus();
-  updateLineNums();
+/* ───────── output ───────── */
+function line(text, cls = 'o-line') {
+  const s = document.createElement('span');
+  s.className = 'o-line ' + cls; s.textContent = text;
+  output.appendChild(s);
 }
-
-// ── Examples ──
-const examples = {
-  hello:   `print "Hello, Lox!";\nprint "Built in C++ — running for real.";`,
-  fib:     `fun fib(n) {\n  if (n <= 1) return n;\n  return fib(n - 1) + fib(n - 2);\n}\nfor (var i = 0; i < 10; i = i + 1) {\n  print fib(i);\n}`,
-  closure: `fun makeCounter() {\n  var count = 0;\n  fun increment() {\n    count = count + 1;\n    return count;\n  }\n  return increment;\n}\nvar c = makeCounter();\nprint c();\nprint c();\nprint c();`,
-  class:   `class Dog {\n  init(name) { this.name = name; }\n  bark() { print this.name + " says: woof!"; }\n}\nvar d = Dog("Rex");\nd.bark();\nd.name = "Buddy";\nd.bark();`,
-  inherit: `class Animal {\n  init(name) { this.name = name; }\n  speak() { print this.name + " makes a sound."; }\n}\nclass Dog < Animal {\n  speak() { print this.name + " barks!"; }\n}\nclass Cat < Animal {\n  speak() { print this.name + " meows."; }\n}\nDog("Rex").speak();\nCat("Whiskers").speak();`,
-  scope:   `var x = "global";\n{\n  var x = "block";\n  print x;\n}\nprint x;`,
-  counter: `fun makeAdder(n) {\n  fun add(x) { return n + x; }\n  return add;\n}\nvar add5 = makeAdder(5);\nvar add10 = makeAdder(10);\nprint add5(3);\nprint add10(3);\nprint add5(add10(2));`,
-};
-function loadExample(k) { editor.value = examples[k]; updateLineNums(); editor.focus(); }
-
-// ── Output helpers ──
-function appendOutput(text, type = 'out-line') {
-  const span = document.createElement('span');
-  span.className = type;
-  span.textContent = text;
-  output.appendChild(span);
-  output.scrollTop = output.scrollHeight;
+function clearOut(msg) {
+  output.innerHTML = msg ? `<span class="o-sys">${msg}</span>` : '';
+  meta.textContent = '';
 }
-function clearOutput() {
-  output.innerHTML = '<span class="out-system">// Output cleared</span>';
-  outputDot.classList.remove('active');
-}
+$('clear').onclick = () => clearOut('cleared');
 
-// ── Health check ──
-async function checkServer() {
+/* ───────── server ───────── */
+function setStatus(kind, text) { dot.className = 'dot ' + kind; statusEl.textContent = text; }
+async function ping() {
   try {
-    const r = await fetch(`${SERVER}/`, { method: 'HEAD', signal: AbortSignal.timeout(2000) });
-    statusDot.className = 'status-dot connected';
-    statusLbl.textContent = 'server ready';
-    output.innerHTML = '<span class="out-system">// Server connected — press Run to execute your code</span>';
-    runBtn.disabled = false;
+    await fetch(SERVER + '/', { method: 'HEAD', signal: AbortSignal.timeout(2000) });
+    setStatus('ok', 'ready'); runBtn.disabled = false;
+    if (output.textContent.startsWith('server')) clearOut('press run');
   } catch {
-    statusDot.className = 'status-dot error';
-    statusLbl.textContent = 'server offline';
-    output.innerHTML = '<span class="out-error">// Server not found at ' + SERVER + '\n// Start it with: node server.js  (or python server.py)</span>';
-    runBtn.disabled = true;
-    // retry
-    setTimeout(checkServer, 3000);
+    setStatus('err', 'offline'); runBtn.disabled = true;
+    clearOut('server not reachable at ' + SERVER + '\nstart it with: python server.py');
+    setTimeout(ping, 3000);
   }
 }
 
-// ── Run code ──
-async function runCode() {
-  const code = editor.value.trim();
-  if (!code) return;
-
-  runBtn.disabled = true;
-  runBtn.innerHTML = '<span class="spinner"></span>Running…';
-  outputDot.classList.remove('active');
-  output.innerHTML = '';
-
+async function run() {
+  if (runBtn.disabled) return;
+  const code = editor.value;
+  try { localStorage.setItem('lox.code', code); } catch {}
+  runBtn.disabled = true; runBtn.textContent = 'running';
+  clearOut();
+  const t0 = performance.now();
   try {
-    const res  = await fetch(`${SERVER}/run`, {
-      method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ code }),
-      signal:  AbortSignal.timeout(8000),
+    const res = await fetch(SERVER + '/run', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code }), signal: AbortSignal.timeout(8000),
     });
-
-    if (!res.ok) {
-      appendOutput(`HTTP ${res.status}: ${res.statusText}`, 'out-error');
-    } else {
-      const data   = await res.json();
-      const stdout = (data.stdout ?? '').trimEnd();
-      const stderr = (data.stderr ?? '').trimEnd();
-
-      if (stdout) {
-        stdout.split('\n').forEach(l => appendOutput(l, 'out-line'));
-      }
-      if (stderr) {
-        stderr.split('\n').forEach(l => appendOutput(l, 'out-error'));
-      }
-      if (!stdout && !stderr) {
-        appendOutput('(no output)', 'out-system');
-      }
-      outputDot.classList.add('active');
+    if (!res.ok) { line(`http ${res.status}`, 'o-err'); }
+    else {
+      const d = await res.json();
+      const out = (d.stdout || '').trimEnd(), err = (d.stderr || '').trimEnd();
+      if (out) out.split('\n').forEach(l => line(l));
+      if (err) err.split('\n').forEach(l => line(l, 'o-err'));
+      if (!out && !err) line('(no output)', 'o-sys');
+      meta.textContent = `exit ${d.exitCode} · ${Math.round(performance.now() - t0)}ms`;
     }
-  } catch (err) {
-    appendOutput('Could not reach server: ' + err.message, 'out-error');
-    appendOutput('Is the server running?  node server.js', 'out-system');
-    statusDot.className = 'status-dot error';
-    statusLbl.textContent = 'server offline';
-    setTimeout(checkServer, 3000);
+  } catch (e) {
+    line('could not reach server: ' + e.message, 'o-err');
+    setStatus('err', 'offline'); setTimeout(ping, 3000);
   }
-
-  runBtn.disabled = false;
-  runBtn.innerHTML = '▶ Run';
+  runBtn.disabled = false; runBtn.textContent = 'run';
 }
+runBtn.onclick = run;
 
-// Start
 runBtn.disabled = true;
-checkServer();
+ping();
 </script>
 </body>
 </html>
