@@ -9,8 +9,8 @@
 - Static analysis- where scopes come to play the region of the code where a certain name can be used to refer to a certain declaration. we have also having binding which is basically finding where name is defined and wire the value and name together. We also check the types of identifiers and if they don't match throw a Type Error.
 - Lexical scope: is a specific style of scoping where the program show where the scope begins and ends.
 - Dynamic scope: is a runtime scoping where the scope of the program is only known after you execute the code.
-- Shadowing
-- closure
+- Shadowing:
+- closure:
 - desuggering: is the process where the front end takes the code with syntax sugar and translate it to a more primitive form that the interpreter/compiler understands
 - semantic analysis: a technique for extracting meaning from the user's source code without having to run it.
-- fields:
+- fields: a var that belongs to a specific instance of a class that a get expression may return.
