@@ -322,6 +322,7 @@ void Interpreter::checkNumberOperands(Token token, std::any operand) {
   if (operand.type() == typeid(double)) {
     return;
   }
+
   throw RuntimeError(token, "operator must be an number.");
 }
 void Interpreter::executeBlock(
@@ -340,6 +341,9 @@ void Interpreter::checkNumberOperands(Token token, std::any left,
   if (left.type() == typeid(double) && right.type() == typeid(double)) {
     return;
   }
+  std::cerr << "\n[DEBUG] RuntimeError at line " << token.getLine()
+            << " for operator '" << token.getLexeme() << "'\n";
+
   throw RuntimeError(token, "operator must be a number.");
 }
 std::string Interpreter::stringify(std::any obj) {

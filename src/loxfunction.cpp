@@ -3,7 +3,7 @@
 #include "../include/loxinstance.h"
 std::any LoxFunction::call(Interpreter &interpreter,
                            const std::vector<std::any> &args) {
-  Environment *enviroment(closure);
+  Environment *enviroment = new Environment(closure);
   for (int i = 0; i < declaration->params.size(); i++) {
     enviroment->define(declaration->params[i].getLexeme(), args[i]);
   }
