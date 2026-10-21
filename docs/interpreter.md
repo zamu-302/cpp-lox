@@ -1,9 +1,10 @@
-Tree-Walk Interpreter
+### 5. Tree-Walk Interpreter
+
 is the execution of code right after parsing it to AST. where the interpreter goes one branch and leaf at a time evaluating each node as it goes. it doesn't compile the code to bytecode or machine code. The AST itself is the executable form.
 
 it inherits from visitors(statement and expression) so it have to implement all the virtual methods at runtime. Those are what it implements...
 
-Expressions
+### Expressions
 
 1. visitLiteralExpr: Unwraps and returns the literal value directly (e.g., numbers, strings, booleans, or null).
 
@@ -29,7 +30,7 @@ Expressions
 
 4. visitSuperExpr: Looks up the superclass and current instance from resolved scope distances, then returns the superclass method bound to the current instance.
 
-Statements
+### Statements
 
 1. visitExpressionStmt: Evaluates an expression statement (like a function call or standalone expression) purely for its side effects, then discards the result.
 
