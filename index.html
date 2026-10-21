@@ -150,7 +150,6 @@ const $ = id => document.getElementById(id);
 const editor = $('editor'), output = $('output'), nums = $('nums'),
       runBtn = $('run'), dot = $('dot'), statusEl = $('status'), meta = $('meta');
 
-/* ───────── examples (replace the editor) ───────── */
 const examples = {
   'hello':     'print "Hello, Lox!";',
   'fibonacci': 'fun fib(n) {\n  if (n < 2) return n;\n  return fib(n - 1) + fib(n - 2);\n}\n\nfor (var i = 0; i < 10; i = i + 1) {\n  print fib(i);\n}',
@@ -161,7 +160,6 @@ const examples = {
   'inherit':   'class Animal {\n  init(name) { this.name = name; }\n  speak() { print this.name + " makes a sound"; }\n}\n\nclass Dog < Animal {\n  speak() {\n    super.speak();\n    print this.name + " barks";\n  }\n}\n\nDog("Rex").speak();',
 };
 
-/* ───────── cheat sheet (insert at cursor) ───────── */
 const cheat = [
   ['var x = 10;',               'variable',      'var x = 10;'],
   ['42  3.14  "hi"  true  nil', 'types',         'print 42;\nprint "hi";\nprint true;\nprint nil;'],

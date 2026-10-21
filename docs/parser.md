@@ -1,15 +1,79 @@
-Parsing
-a parser takes the list of the tokens from the scanner and produces a tree like structure that mirrors the nested nature of grammar. they are called syntax trees or abstract syntax trees. it gives us the ability to create the higher level statements using out smaller parts(Tokens). which looks like this.
-![Alt Text Description](./images/Ast.png)
-This Syntax tree will also help us figure out syntax errors. it's also used by LSP(Language sever protocol) which guesses what you are trying to do when coding by seeing the whereabouts of the cursor and the AST(abstract syntax tree).
+# 2. Parser and grammar
 
-The way the parser handles syntax error is entering panic mode which sounds too much but is necessary to avoid cascading error which is having more errors around because the parser continuing to parse without resolving the previous error causing it to have more error than necessary and to avoid this we use Synchronization which basically get the parser to safe state before going to the next tokens. saves before state-> resolves->goes back.
+## Idea
 
-context free Grammar
--is a set of formal rules(Productions) for generating strings in a language.where those strings define what a valid expression, statements or program looks like.it contains bodies that describe the rule of the grammar which are terminal,non terminal and productions were terminal are tokens which are like literal values and are called terminals because they are endpoints whereas non terminal can be seen as rules that point to other rules till you find a terminal and return it.Production which has a non terminal -> sequence of terminal and/or non terminal. but left side must be one non terminal. This is also where precedence is designed where lower precedence operations appear upper in the grammar and higher ones appear lower in the grammar.
+The parser takes the list of the tokens from the scanner and builds a tree like structure that mirrors the nested nature of grammar. It is called syntax trees or abstract syntax trees.
+It gives us the ability to create the higher level statements using out smaller parts(Tokens). which looks like this.
+![Alt Text Description](../images/Ast.png)
+This Parser will also help us figure out syntax errors when the next token doesn't fit the grammar, it reports an error. It's also used by Resolver,Interpret and LSP(Language sever protocol) which guesses what you are trying to do when coding by seeing the whereabouts of the cursor and the AST(abstract syntax tree).
 
-![Alt Text Description](./images/Statements.png)![Alt Text Description](./images/Expression.png)
+### context free Grammar
 
-to implement those grammars we have a recursive decent parser which is a top-down parser where we write one function for each non terminal in the grammar. were it consumes tokens and calls other non terminal functions when needed and returns a parsed value. which mirrors the grammar's recursion.
+The context-free grammar is a set of formal rules(Productions) for generating strings in a language.where those strings define what a valid expression, statements or program looks like.
 
-![Alt Text Description](./images/matrix.png)
+It contains bodies that describe the rule of the grammar which are terminal,non terminal and productions were terminal are tokens, an endpoint that needs no further rules.
+
+whereas non terminal can be seen as rules that point to other rules till you find a terminal and return it back to the main rule.
+
+Production which has a non terminal -> sequence of terminal and/or non terminal. but left side must be one non terminal.
+
+**Precedence is built into the grammar.** Lower-precedence operators are matched first, so
+they sit _higher_ in the grammar; higher-precedence operators sit _lower_. That is why `*`
+ends up deeper in the tree than `+`.
+
+Precedence, lowest to highest:
+
+| Level | Operators               | Associativity | Parser function |
+| ----- | ----------------------- | ------------- | --------------- |
+| 1     | `=`                     | right         | `assignment`    |
+| 2     | `or`                    | left          | `orExpr`        |
+| 3     | `and`                   | left          | `andExpr`       |
+| 4     | `==` `!=`               | left          | `equality`      |
+| 5     | `<` `<=` `>` `>=`       | left          | `comparsion`    |
+| 6     | `+` `-`                 | left          | `term`          |
+| 7     | `*` `/`                 | left          | `factor`        |
+| 8     | `!` `-` (unary)         | right         | `unary`         |
+| 9     | `()` call, `.` property | left          | `call`          |
+
+![Alt Text Description](../images/Statements.png)![Alt Text Description](../images/Expression.png)
+
+### Recursive descent
+
+Recursive descent is a **top-down** parsing technique: write one function per non-terminal.
+Each function consumes tokens, calls the functions for other non-terminals when its rule says
+so, and returns a **tree node**. The code mirrors the grammar's recursion, and it is called
+"descent" because it starts at the top rule and goes down towards the terminals.
+
+### Errors and panic mode
+
+If the parser kept going after an error as if nothing had happened, one mistake would cause
+a flood of fake errors (**cascading errors**). So after reporting an error the parser enters
+**panic mode**: it _throws away tokens_ until it reaches the start of the next statement
+(**synchronization**), then continues from there. Nothing is saved or restored; it just skips ahead
+to a point where parsing can safely resume.
+
+## Example: `1 + 2 * 3`
+
+Tree:
+
+```
+Binary(+)
+├── Literal(1)
+└── Binary(*)
+    ├── Literal(2)
+    └── Literal(3)
+```
+
+How the functions produce it:
+
+```
+expression → assignment → orExpr → andExpr → equality → comparsion → term
+term:   expr = factor()  → ... → primary gives 1
+term:   match(PLUS) ✓    right = factor()
+          factor: expr = unary() → primary gives 2
+          factor: match(STAR) ✓  right = unary() → 3   → Binary(2 * 3)
+term:   expr = Binary(1 + (2 * 3))
+```
+
+`*` binds tighter because `factor` is called _inside_ `term`: by the time `term` gets its
+right operand, `factor` has already grouped `2 * 3`.
